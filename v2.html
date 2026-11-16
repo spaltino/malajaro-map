@@ -125,7 +125,7 @@
   .kpi-ico{font-size:16px;line-height:1.2;flex:none;}
   .kpi-k{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;}
   .kpi-v{margin-top:1px;font-size:14.5px;font-weight:800;letter-spacing:-.03em;line-height:1.25;}
-  .kpi-s{margin-top:1px;font-size:10.5px;color:var(--muted);letter-spacing:-.01em;line-height:1.35;}
+  .kpi-s{margin-top:1px;font-size:10.5px;color:var(--muted);letter-spacing:-.01em;line-height:1.35;word-break:keep-all;}
   .share-btn{
     border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
     font-size:12.5px;height:36px;padding:0 13px;font-weight:800;
@@ -210,6 +210,12 @@
     letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;
   }
   .cards{display:flex;flex-direction:column;gap:10px;}
+  .load-more{
+    display:block;width:100%;margin-top:2px;height:40px;border-radius:11px;
+    border:1px dashed var(--line-strong);background:#fdfcfa;color:var(--ink-2);
+    font-size:12.5px;font-weight:800;letter-spacing:-.01em;cursor:pointer;
+  }
+  .load-more:hover{border-color:var(--accent);color:var(--accent);background:#fff8f6;}
 
   /* ---------- badges ---------- */
   .badge{
@@ -643,22 +649,24 @@
     background:rgba(255,255,255,.06);color:#fff;font-size:17px;cursor:pointer;flex:none;
   }
   .flash-close:hover{background:rgba(255,255,255,.14);}
-  .flash-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;padding:18px 0;max-width:980px;margin:0 auto;width:100%;}
+  .flash-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:18px 0;max-width:1100px;margin:0 auto;width:100%;}
+  .flash-block{padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .flash-block:last-of-type{border-bottom:none;padding-bottom:0;}
   .flash-label{font-size:11.5px;font-weight:800;letter-spacing:.08em;color:rgba(255,255,255,.45);text-transform:uppercase;}
   .flash-cn{
     font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
-    font-size:40px;font-weight:800;line-height:1.28;letter-spacing:-.01em;
-    word-break:keep-all;
+    font-size:clamp(32px,4vw,58px);font-weight:800;line-height:1.3;letter-spacing:-.01em;
+    word-break:keep-all;margin-top:6px;
   }
-  .flash-addr{font-size:34px;font-weight:800;line-height:1.35;color:#ffd9cf;}
-  .flash-station{font-size:24px;font-weight:700;color:#c9d6ff;line-height:1.4;}
+  .flash-addr{font-size:clamp(28px,3.5vw,50px);font-weight:800;line-height:1.35;color:#ffd9cf;margin-top:6px;word-break:keep-all;}
+  .flash-station{font-size:clamp(19px,2.2vw,30px);font-weight:700;color:#c9d6ff;line-height:1.4;margin-top:6px;}
   .flash-ko{font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;}
-  .flash-big .flash-cn{font-size:56px;}
-  .flash-big .flash-addr{font-size:46px;}
-  .flash-big .flash-station{font-size:30px;}
-  .flash-bigger .flash-cn{font-size:72px;}
-  .flash-bigger .flash-addr{font-size:60px;}
-  .flash-bigger .flash-station{font-size:38px;}
+  .flash-big .flash-cn{font-size:clamp(40px,5vw,74px);}
+  .flash-big .flash-addr{font-size:clamp(34px,4.4vw,62px);}
+  .flash-big .flash-station{font-size:clamp(23px,2.7vw,38px);}
+  .flash-bigger .flash-cn{font-size:clamp(48px,6.2vw,92px);}
+  .flash-bigger .flash-addr{font-size:clamp(42px,5.4vw,78px);}
+  .flash-bigger .flash-station{font-size:clamp(27px,3.3vw,46px);}
   .flash-acts{display:flex;gap:8px;flex-wrap:wrap;}
   .flash-btn{
     height:44px;padding:0 16px;border-radius:11px;border:1px solid rgba(255,255,255,.2);
@@ -711,6 +719,8 @@
     .layout{display:flex;flex-direction:column;height:auto;}
     .map-wrap{order:-1;height:44vh;min-height:300px;flex:none;}
     .map-hint,.map-legend{display:none;}
+    .cluster-label{display:none;}
+    .cluster-bubble{min-width:32px;height:32px;font-size:13px;}
     .sidebar{overflow:visible;border-right:none;border-bottom:1px solid var(--line);padding:13px 13px 22px;}
     .sidebar-head h2{font-size:14px;}
     .only-confirmed{font-size:11px;padding:4px 8px;}
@@ -737,10 +747,10 @@
     .flash-cn{font-size:30px;}
     .flash-addr{font-size:26px;}
     .flash-station{font-size:19px;}
-    .flash-big .flash-cn{font-size:38px;}
-    .flash-big .flash-addr{font-size:32px;}
-    .flash-bigger .flash-cn{font-size:46px;}
-    .flash-bigger .flash-addr{font-size:38px;}
+    .flash-big .flash-cn{font-size:36px;}
+    .flash-big .flash-addr{font-size:30px;}
+    .flash-bigger .flash-cn{font-size:42px;}
+    .flash-bigger .flash-addr{font-size:34px;}
     .page-foot{padding:18px 14px 34px;}
   }
   @media (prefers-reduced-motion: reduce){
@@ -1430,7 +1440,7 @@
       ],
       note: "1~3펜 처방 한도는 당일 의사 판단 — 3펜 가능 여부 사전 확인 중",
       coord: [31.2096, 121.5290],
-      taxi: { addr: "上海市浦东新区浦建路160号 仁济医院东院 国际医疗部", station: "地铁4号线 塘桥站 2号出口（步行约450米）" }
+      taxi: { addr: "上海市浦东新区浦建路160号", station: "地铁4号线 塘桥站 2号出口（步行约450米）" }
     },
     {
       id: "dongfang", no: 2, city: "shanghai", cityLabel: "상하이 · 浦东",
@@ -1445,7 +1455,7 @@
       ],
       note: "런지병원 <strong>백업 후보</strong> · 전화 확인 전 정보",
       coord: [31.2397, 121.5117],
-      taxi: { addr: "上海市浦东新区即墨路150号 东方医院 本部", station: "地铁2号线 东昌路站 1号出口（步行约700米）" }
+      taxi: { addr: "上海市浦东新区即墨路150号", station: "地铁2号线 东昌路站 1号出口（步行约700米）" }
     },
     {
       id: "gongli", no: 3, city: "shanghai", cityLabel: "상하이 · 浦东",
@@ -1459,7 +1469,7 @@
       ],
       note: "런지병원 <strong>백업 후보</strong> · 외국인 접수·재고 미확인",
       coord: [31.2406, 121.5396],
-      taxi: { addr: "上海市浦东新区苗圃路219号 公利医院", station: "地铁6号线 源深体育中心站（步行约300米）" }
+      taxi: { addr: "上海市浦东新区苗圃路219号", station: "地铁6号线 源深体育中心站（步行约300米）" }
     },
     {
       id: "jddp", no: "약", kind: "pharmacy", city: "shanghai", cityLabel: "상하이 · 플랜B 약국",
@@ -1475,7 +1485,7 @@
       ],
       note: "병원에서 <strong>1펜만 받았을 때</strong> 추가 구매하는 플랜B 루트 · 후기 기준",
       coord: [31.1965, 121.4565],
-      taxi: { addr: "上海市徐汇区枫林路269弄 京东大药房 上海枫林路店", station: "지하철 4호선 东安路站 인근 (지도 앱 확인)" }
+      taxi: { addr: "上海市徐汇区枫林路269弄", station: "지하철 4호선 东安路站 인근 (지도 앱 확인)" }
     },
     {
       id: "kdlpd", no: "약", kind: "pharmacy", city: "shanghai", cityLabel: "상하이 · 플랜B 약국",
@@ -1491,7 +1501,7 @@
       ],
       note: "일라이 릴리 마운자로(<span>穆峰达</span>) 정식 취급 <strong>DTP 전문약국</strong>",
       coord: [31.1816, 121.5318],
-      taxi: { addr: "上海市浦东新区杨高南路2875号 康德乐大药房 浦东店", station: "런지병원 동원에서 택시 8~10분" }
+      taxi: { addr: "上海市浦东新区杨高南路2875号", station: "런지병원 동원에서 택시 8~10분" }
     },
 
     /* ───────────── 닝보 ───────────── */
@@ -1510,7 +1520,7 @@
       ],
       note: "<strong>11/17 오전</strong> 외국인 처방·재고 전화 확인 예정",
       coord: [29.8698, 121.5415],
-      taxi: { addr: "宁波市海曙区柳汀街59号 宁波大学附属第一医院 月湖院区", station: "地铁2号线 城隍庙站 A号出口（步行180米）" }
+      taxi: { addr: "宁波市海曙区柳汀街59号", station: "地铁2号线 城隍庙站 A号出口（步行180米）" }
     },
     {
       id: "nb2", no: 5, city: "ningbo", cityLabel: "닝보",
@@ -1525,7 +1535,7 @@
       ],
       note: "<strong>11/17 오전</strong> 전화 확인 예정 · 제1병원과 묶어서 방문 가능",
       coord: [29.8884, 121.5420],
-      taxi: { addr: "宁波市海曙区西北街41号 宁波市第二医院", station: "地铁1号线 西门口站（步行约800米）" }
+      taxi: { addr: "宁波市海曙区西北街41号", station: "地铁1号线 西门口站（步行约800米）" }
     },
     {
       id: "lihuili", no: 6, city: "ningbo", cityLabel: "닝보",
@@ -1539,7 +1549,7 @@
       ],
       note: "<strong>11/17 오전</strong> 전화 확인 예정",
       coord: [29.8588, 121.5648],
-      taxi: { addr: "宁波市鄞州区兴宁路57号 李惠利医院 兴宁院区", station: "地铁4号线 白鹤站 B号出口" }
+      taxi: { addr: "宁波市鄞州区兴宁路57号", station: "地铁4号线 白鹤站 B号出口" }
     },
 
     /* ───────────── 칭다오 ───────────── */
@@ -1559,7 +1569,7 @@
       ],
       note: "한국인 여권 처방 후기 다수(2026-10~11) · <strong>공식 전화 확인 전</strong>",
       coord: [36.0599, 120.4033],
-      taxi: { addr: "青岛市市南区东海中路5号 青岛市市立医院 东院 国际门诊（B栋2层）", station: "地铁2号线 燕儿岛路站 C号出口（步行约10分钟）" }
+      taxi: { addr: "青岛市市南区东海中路5号", station: "地铁2号线 燕儿岛路站 C号出口（步行约10分钟）" }
     },
     {
       id: "qd-main", no: 8, city: "qingdao", cityLabel: "칭다오",
@@ -1576,7 +1586,7 @@
       ],
       note: "동원 국제부보다 <strong>진찰료가 싸지만</strong> 외국인 응대·재고는 불확실",
       coord: [36.0731, 120.3269],
-      taxi: { addr: "青岛市市北区胶州路1号 青岛市市立医院 本部", station: "地铁1号线 观象山站 A号出口" }
+      taxi: { addr: "青岛市市北区胶州路1号", station: "地铁1号线 观象山站 A号出口" }
     },
 
     /* ───────────── 베이징 ───────────── */
@@ -1595,7 +1605,7 @@
       ],
       note: "국제진료부 운영은 공식 확인 · <strong>외국인 처방은 미확인</strong>",
       coord: [39.9121, 116.4130],
-      taxi: { addr: "北京市东城区帅府园1号 北京协和医院 国际医疗部", station: "地铁1号线·5号线 东单站 A/B号出口 向北" }
+      taxi: { addr: "北京市东城区帅府园1号", station: "地铁1号线·5号线 东单站 A/B号出口 向北" }
     },
     {
       id: "bj-cjfh", no: 10, city: "beijing", cityLabel: "베이징",
@@ -1611,7 +1621,7 @@
       ],
       note: "국제부 운영 공식 확인 · <strong>마운자로 처방 미확인</strong>",
       coord: [39.9743, 116.4288],
-      taxi: { addr: "北京市朝阳区樱花园东街2号 中日友好医院 国际部", station: "地铁5号线·10号线 惠新西街南口站 向东" }
+      taxi: { addr: "北京市朝阳区樱花园东街2号", station: "地铁5号线·10号线 惠新西街南口站 向东" }
     },
 
     /* ───────────── 광저우 · 선전 ───────────── */
@@ -1630,7 +1640,7 @@
       ],
       note: "국제진료 가능 · <strong>외국인 마운자로 처방 미확인</strong>",
       coord: [23.1254, 113.2899],
-      taxi: { addr: "广州市越秀区中山二路58号 中山大学附属第一医院", station: "地铁1号线 烈士陵园站 C号出口 向东200米" }
+      taxi: { addr: "广州市越秀区中山二路58号", station: "地铁1号线 烈士陵园站 C号出口 向东200米" }
     },
     {
       id: "gz-gdph", no: 12, city: "south", cityLabel: "광저우",
@@ -1646,7 +1656,7 @@
       ],
       note: "중산대 제1병원과 <strong>같은 블록</strong> · 처방 미확인",
       coord: [23.1257, 113.2872],
-      taxi: { addr: "广州市越秀区中山二路106号 广东省人民医院", station: "地铁1号线 烈士陵园站 C号出口" }
+      taxi: { addr: "广州市越秀区中山二路106号", station: "地铁1号线 烈士陵园站 C号出口" }
     },
     {
       id: "gz-united", no: 13, city: "south", cityLabel: "광저우",
@@ -1662,7 +1672,7 @@
       ],
       note: "공식 공지는 확인 · <strong>구성과 처방 조건은 미확인</strong>",
       coord: [23.1022, 113.3385],
-      taxi: { addr: "广州市海珠区琶洲大道31号 广州和睦家医院", station: "地铁8号线 琶洲站 附近" }
+      taxi: { addr: "广州市海珠区琶洲大道31号", station: "地铁8号线 琶洲站 附近" }
     },
     {
       id: "sz-hku", no: 14, city: "south", cityLabel: "선전",
@@ -1678,7 +1688,7 @@
       ],
       note: "국제진료부 공식 확인 · <strong>처방 사례 미확인</strong>",
       coord: [22.5254, 113.9961],
-      taxi: { addr: "深圳市福田区海园一路1号 香港大学深圳医院", station: "地铁9号线 深圳湾公园站 D1号出口（120米）" }
+      taxi: { addr: "深圳市福田区海园一路1号", station: "地铁9号线 深圳湾公园站 D1号出口（120米）" }
     },
 
     /* ───────────── 항저우 ───────────── */
@@ -1697,7 +1707,7 @@
       ],
       note: "항저우 대표 3급 갑등 · <strong>마운자로 처방 미확인</strong>",
       coord: [30.2556, 120.1784],
-      taxi: { addr: "杭州市上城区庆春路79号 浙江大学医学院附属第一医院", station: "地铁5号线 万安桥站 D号出口（200米）" }
+      taxi: { addr: "杭州市上城区庆春路79号", station: "地铁5号线 万安桥站 D号出口（200米）" }
     },
     {
       id: "hz-zju2", no: 16, city: "hangzhou", cityLabel: "항저우",
@@ -1712,7 +1722,7 @@
       ],
       note: "제1병원과 <strong>도보권</strong> · 처방 미확인",
       coord: [30.2508, 120.1771],
-      taxi: { addr: "杭州市上城区解放路88号 浙江大学医学院附属第二医院", station: "地铁5号线 万安桥站 附近" }
+      taxi: { addr: "杭州市上城区解放路88号", station: "地铁5号线 万安桥站 附近" }
     },
 
     /* ───────────── 선양 · 다롄 ───────────── */
@@ -1731,7 +1741,7 @@
       ],
       note: "선양 대표 3급 갑등 · <strong>마운자로 처방 미확인</strong>",
       coord: [41.7951, 123.4097],
-      taxi: { addr: "沈阳市和平区南京北街155号 中国医科大学附属第一医院", station: "地铁1号线 太原街站 C号出口 方向" }
+      taxi: { addr: "沈阳市和平区南京北街155号", station: "地铁1号线 太原街站 C号出口 方向" }
     },
     {
       id: "dl-dmu1", no: 18, city: "northeast", cityLabel: "다롄",
@@ -1748,7 +1758,7 @@
       ],
       note: "공항이 가까운 3급 갑등 · <strong>처방 미확인</strong>",
       coord: [38.9101, 121.6118],
-      taxi: { addr: "大连市西岗区中山路222号 大连医科大学附属第一医院", station: "地铁2号线 人民广场站 下车即是" }
+      taxi: { addr: "大连市西岗区中山路222号", station: "地铁2号线 人民广场站 下车即是" }
     }
   ];
 
@@ -1827,7 +1837,7 @@
     }
   ];
 
-  var state = { city: "all", filter: "all", selected: null };
+  var state = { city: "all", filter: "all", selected: null, showAll: false };
 
   function byId(id) {
     for (var i = 0; i < HOSPITALS.length; i++) if (HOSPITALS[i].id === id) return HOSPITALS[i];
@@ -2013,6 +2023,8 @@
     }).join("");
   }
 
+  function isMobile() { return window.matchMedia("(max-width: 900px)").matches; }
+
   function renderCards() {
     var list = visibleHospitals();
     var fLabel = (FILTERS.filter(function (x) { return x.key === state.filter; })[0] || FILTERS[0]).label;
@@ -2023,7 +2035,10 @@
       cardsEl.innerHTML = '<div class="empty">조건에 맞는 곳이 없습니다.<br />필터를 “전체”로 바꾸면 20곳을 볼 수 있어요.</div>';
       return;
     }
-    cardsEl.innerHTML = list.map(cardHtml).join("");
+    var capped = isMobile() && state.city === "all" && !state.showAll && list.length > 6;
+    var shown = capped ? list.slice(0, 6) : list;
+    cardsEl.innerHTML = shown.map(cardHtml).join("") +
+      (capped ? '<button class="load-more" type="button" id="loadMore">' + list.length + "곳 모두 보기 · " + (list.length - 6) + "곳 더</button>" : "");
     if (state.selected) {
       var active = cardsEl.querySelector('.card[data-id="' + state.selected + '"]');
       if (active) active.classList.add("is-active");
@@ -2067,6 +2082,7 @@
 
   cardsEl.addEventListener("click", function (e) {
     var t = e.target;
+    if (t.id === "loadMore") { state.showAll = true; renderCards(); return; }
     var taxiBtn = t.closest ? t.closest("[data-taxi]") : null;
     if (taxiBtn) { e.preventDefault(); e.stopPropagation(); openTaxi(taxiBtn.getAttribute("data-taxi")); return; }
     var copyBtn = t.closest ? t.closest("[data-copy-addr]") : null;
@@ -2113,7 +2129,7 @@
     if (!btn) return;
     var city = btn.getAttribute("data-city");
     if (city === state.city) return;
-    state.city = city; state.selected = null;
+    state.city = city; state.selected = null; state.showAll = false;
     syncTabs(); renderFilters(); renderCards(); renderMap();
   });
 
@@ -2122,7 +2138,7 @@
     if (!btn) return;
     var key = btn.getAttribute("data-filter");
     if (key === state.filter) return;
-    state.filter = key; state.selected = null;
+    state.filter = key; state.selected = null; state.showAll = false;
     Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (b) {
       b.setAttribute("aria-pressed", b === btn ? "true" : "false");
     });
@@ -2165,11 +2181,11 @@
     var h = byId(id);
     if (!h || !h.taxi) return;
     var body =
-      '<div><div class="flash-label">병원·약국 이름 · 医院名称</div>' +
+      '<div class="flash-block"><div class="flash-label">병원·약국 이름 · 医院名称</div>' +
         '<div class="flash-cn">' + h.cn + "</div></div>" +
-      '<div><div class="flash-label">주소 · 地址</div>' +
+      '<div class="flash-block"><div class="flash-label">주소 · 地址</div>' +
         '<div class="flash-addr">' + h.taxi.addr + "</div></div>" +
-      (h.taxi.station ? '<div><div class="flash-label">가까운 역 · 最近的地铁站</div>' +
+      (h.taxi.station ? '<div class="flash-block"><div class="flash-label">가까운 역 · 最近的地铁站</div>' +
         '<div class="flash-station">' + h.taxi.station + "</div></div>" : "") +
       '<div class="flash-ko">' + h.name + " · 이 화면을 기사님께 그대로 보여주세요. 도착하면 병원 이름을 다시 확인하세요.</div>";
     var acts =
@@ -2190,8 +2206,8 @@
     var p = PHRASES[i];
     if (!p) return;
     var body =
-      '<div><div class="flash-label">중국어</div><div class="flash-cn">' + p.cn + "</div></div>" +
-      '<div><div class="flash-label">한국어 뜻</div><div class="flash-station">' + p.ko + "</div></div>" +
+      '<div class="flash-block"><div class="flash-label">중국어</div><div class="flash-cn">' + p.cn + "</div></div>" +
+      '<div class="flash-block"><div class="flash-label">한국어 뜻</div><div class="flash-station">' + p.ko + "</div></div>" +
       '<div class="flash-ko">한국어 발음 · ' + p.pron + "</div>";
     var acts =
       '<button class="flash-btn solid" type="button" id="flashSizeBtn">🔍 글씨 크게</button>' +
