@@ -1,5 +1,7 @@
 # 🌶️ 마라자로 맵 (MalaJaro Map)
 
+> 🔗 **라이브 사이트: <https://spaltino.github.io/malajaro-map/>**
+
 중국 주요 도시(상하이·닝보·칭다오)의 **마운자로(穆峰达) 처방 병원·플랜B 약국**, 공항 동선, 세관·보관 가이드를 한 화면에 정리한 인터랙티브 웹 지도 시안입니다.
 
 ## 구성
@@ -20,10 +22,9 @@
 
 ## 배포 (GitHub Pages)
 
-```bash
-# 저장소 루트에 이 폴더를 그대로 올린 뒤
-Settings → Pages → Branch: main / folder: /malajaro-map
-```
+- 저장소 루트에 `index.html`·`README.md`를 올린 구성입니다.
+- 설정: `Settings → Pages → Deploy from a branch → Branch: main / folder: / (root)`
+- 배포 후 1~2분 뒤 <https://spaltino.github.io/malajaro-map/> 에서 열립니다. (2026-11-16 배포 완료)
 
 ## 데이터 기준
 
@@ -33,3 +34,4 @@ Settings → Pages → Branch: main / folder: /malajaro-map
 - 닝보 3곳은 11/17 오전 외국인 처방·재고 전화 확인 예정입니다.
 
 > 참고용 정보입니다. 의료·법적 판단의 근거로 사용하지 마세요.
+
