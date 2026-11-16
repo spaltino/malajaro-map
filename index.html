@@ -766,7 +766,7 @@
         </div>
 
         <p class="calc-caveat">
-          <b>약가·진찰료·환율은 추정치</b>입니다. 항공권은 춘추항공 당일치기 기준이며, 병원 재고·처방 한도·세관 판단에 따라 실제 금액은 달라집니다. 의료비는 여행자보험 실손 대상이 아닐 수 있습니다.
+          <b>약가·진찰료·환율은 추정치</b>입니다. 항공권은 2026-11 조회 최저가대(왕복 직항) 기준이며, 병원 재고·처방 한도·세관 판단에 따라 실제 금액은 달라집니다. 의료비는 여행자보험 실손 대상이 아닐 수 있습니다.
         </p>
       </div>
     </div>
@@ -1749,7 +1749,7 @@
     document.getElementById("cExamOut").textContent = won(exam);
     document.getElementById("cDrugOut").textContent = won(drug);
     document.getElementById("cExamKrw").textContent = fmtNum(calc.exam) + "위안 환산";
-    document.getElementById("cDrugKrw").textContent = fmtNum(calc.drug * calc.pens) + "위안 × " + calc.pens + "펜";
+    document.getElementById("cDrugKrw").textContent = fmtNum(calc.drug) + "위안 × " + calc.pens + "펜";
     document.getElementById("cMini").textContent = "항공 " + won(air) + " · 진찰 " + won(exam) + " · 약값 " + won(drug);
 
     var box = document.getElementById("cSaveBox");
