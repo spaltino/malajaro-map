@@ -4,7 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>🌶️ 마라자로 맵 (MalaJaro Map) — 중국 마운자로 처방 병원 지도</title>
-<meta name="description" content="중국 9개 도시(상하이·닝보·칭다오·베이징·광저우·선전·항저우·선양·다롄) 마운자로(穆峰达) 처방 병원, 인천·김포·부산·제주 출발 항공권 참고가, 공항 동선, 세관·준비물 가이드. 확인 수준을 배지로 구분한 인터랍티브 지도." />
+<meta name="description" content="중국 9개 도시(상하이·닝보·칭다오·베이징·광저우·선전·항저우·선양·다롄) 마운자로(穆峰达) 처방 병원 20곳, 인천·김포·부산·제주 출발 항공권 참고가, 공항→병원 지하철 루트, 세관 한도, 택시기사용 중국어 주소, 진료실 회화, 한국·중국·일본 3국 가격 비교까지 한 페이지에." />
+<meta property="og:title" content="🌶️ 마라자로 맵 — 중국 마운자로 처방 병원 지도" />
+<meta property="og:description" content="9개 도시 20곳 · 최저 원정가 약 37만 원 · 세관 한도 3펜/3개월 · 기내 휴대 필수" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://spaltino.github.io/malajaro-map/" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B6%EF%B8%8F%3C/text%3E%3C/svg%3E" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root{
@@ -25,11 +30,14 @@
     --review-bg:#e9effc;
     --official:#575d67;
     --official-bg:#eef0f3;
+    --pharmacy:#6d28d9;
     --radius:14px;
     --shadow-sm:0 1px 2px rgba(25,27,31,.05), 0 6px 18px rgba(25,27,31,.05);
     --shadow-md:0 2px 4px rgba(25,27,31,.06), 0 18px 40px rgba(25,27,31,.12);
+    --header-h:60px;
   }
   *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:112px;}
   html,body{margin:0;padding:0;}
   body{
     background:var(--bg);
@@ -38,116 +46,137 @@
     font-size:14px;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
-    display:grid;
-    grid-template-rows:auto auto 1fr;
-    height:100vh;
-    height:100dvh;
-    overflow:hidden;
   }
-  button{font-family:inherit;}
+  button,a{font-family:inherit;}
   a{color:var(--accent);}
+  h1,h2,h3,h4,p{margin:0;}
 
   /* ---------- header ---------- */
   .app-header{
+    position:sticky;top:0;z-index:600;
     display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:14px 22px;
-    background:var(--surface);
+    padding:11px 22px;
+    background:rgba(255,255,255,.94);
+    backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
-    z-index:30;
   }
   .brand{display:flex;align-items:center;gap:12px;min-width:0;}
   .brand-mark{
-    flex:none;
-    width:42px;height:42px;border-radius:12px;
+    flex:none;width:40px;height:40px;border-radius:12px;
     display:grid;place-items:center;
     background:linear-gradient(145deg,#fdece8,#fbd9d1);
     box-shadow:inset 0 0 0 1px rgba(217,72,47,.16);
-    font-size:21px;line-height:1;
-    user-select:none;
+    font-size:20px;line-height:1;user-select:none;
   }
   .brand h1{
-    margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;
+    font-size:19px;font-weight:800;letter-spacing:-.02em;
     display:flex;align-items:baseline;gap:8px;white-space:nowrap;
   }
   .brand h1 .en{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0;}
   .brand .tagline{
-    margin:2px 0 0;font-size:12.5px;color:var(--muted);letter-spacing:-.01em;
+    margin-top:2px;font-size:12.5px;color:var(--muted);letter-spacing:-.01em;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .header-actions{display:flex;align-items:center;gap:8px;flex:none;}
-  .lbl-short{display:none;}
-  .btn-calc{
+  .header-actions{display:flex;align-items:center;gap:7px;flex:none;}
+  .btn-calc,.btn-guide,.btn-ghost,.share-btn{
     display:inline-flex;align-items:center;gap:6px;
-    height:38px;padding:0 15px;border-radius:10px;
-    border:1px solid var(--accent);
-    background:var(--accent);color:#fff;
+    height:38px;padding:0 14px;border-radius:10px;
     font-size:13px;font-weight:800;letter-spacing:-.01em;
-    cursor:pointer;transition:.16s ease;
-    box-shadow:0 2px 8px rgba(217,72,47,.22);
+    cursor:pointer;transition:.16s ease;text-decoration:none;white-space:nowrap;
   }
+  .btn-calc{border:1px solid var(--accent);background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(217,72,47,.22);}
   .btn-calc:hover{background:#c33d26;border-color:#c33d26;}
-  .btn-calc .ico{font-size:14px;line-height:1;}
-  .btn-guide{
-    display:inline-flex;align-items:center;gap:7px;
-    height:38px;padding:0 15px;border-radius:10px;
-    border:1px solid var(--line-strong);background:var(--surface);
-    color:var(--ink);font-size:13px;font-weight:700;letter-spacing:-.01em;
-    cursor:pointer;transition:.16s ease;
-  }
+  .btn-guide{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;}
   .btn-guide:hover{border-color:#c8c2b8;background:#fbfaf8;}
+  .btn-ghost{border:1px solid transparent;background:transparent;color:var(--ink-2);font-weight:700;font-size:12.5px;padding:0 10px;}
+  .btn-ghost:hover{background:#f4f2ee;color:var(--ink);}
   .btn-guide .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
   .btn-guide .arrow{color:var(--muted);font-size:12px;}
+  .lbl-short{display:none;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:26px 22px 20px;
+    background:
+      radial-gradient(1200px 320px at 8% -40%, rgba(217,72,47,.10), transparent 62%),
+      radial-gradient(900px 280px at 92% -60%, rgba(31,95,208,.09), transparent 60%),
+      var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .hero-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;max-width:1240px;margin:0 auto 16px;}
+  .hero-kicker{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);
+  }
+  .hero-kicker::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);}
+  .hero-copy h2{
+    margin-top:7px;font-size:27px;font-weight:800;letter-spacing:-.045em;line-height:1.22;
+  }
+  .hero-copy p{margin-top:6px;font-size:13.5px;color:var(--muted);letter-spacing:-.015em;}
+  .kpis{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;
+    max-width:1240px;margin:0 auto;
+  }
+  .kpi{
+    display:flex;align-items:flex-start;gap:9px;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:11px 12px;box-shadow:var(--shadow-sm);
+  }
+  .kpi-ico{font-size:16px;line-height:1.2;flex:none;}
+  .kpi-k{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.03em;text-transform:uppercase;}
+  .kpi-v{margin-top:1px;font-size:14.5px;font-weight:800;letter-spacing:-.03em;line-height:1.25;}
+  .kpi-s{margin-top:1px;font-size:10.5px;color:var(--muted);letter-spacing:-.01em;line-height:1.35;word-break:keep-all;}
+  .share-btn{
+    border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+    font-size:12.5px;height:36px;padding:0 13px;font-weight:800;
+  }
+  .share-btn:hover{border-color:var(--accent);color:var(--accent);background:#fffaf8;}
 
   /* ---------- city tabs ---------- */
   .city-tabs{
+    position:sticky;top:var(--header-h);z-index:520;
     display:flex;align-items:center;gap:8px;
-    padding:11px 22px;
-    background:var(--surface);
+    padding:10px 22px;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
-    overflow-x:auto;
-    scrollbar-width:none;
-    z-index:25;
+    overflow-x:auto;scrollbar-width:none;
   }
   .city-tabs::-webkit-scrollbar{display:none;}
   .tab{
-    flex:none;
-    display:inline-flex;align-items:center;gap:7px;
-    height:34px;padding:0 14px;border-radius:999px;
+    flex:none;display:inline-flex;align-items:center;gap:7px;
+    height:33px;padding:0 13px;border-radius:999px;
     border:1px solid var(--line-strong);background:var(--surface);
-    color:var(--ink-2);font-size:13px;font-weight:600;letter-spacing:-.01em;
+    color:var(--ink-2);font-size:12.5px;font-weight:600;letter-spacing:-.01em;
     cursor:pointer;transition:.16s ease;white-space:nowrap;
   }
   .tab:hover{background:#faf9f7;border-color:#cbc6bc;}
   .tab .count{
-    font-size:11px;font-weight:700;color:var(--muted);
+    font-size:10.5px;font-weight:700;color:var(--muted);
     background:#f1efeb;border-radius:999px;padding:1px 6px;min-width:18px;text-align:center;
   }
   .tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
   .tab[aria-selected="true"] .count{background:rgba(255,255,255,.18);color:#fff;}
-  .tab.tab-pharmacy{border-color:rgba(109,40,217,.35);}
-  .tab.tab-pharmacy[aria-selected="true"]{background:#6d28d9;border-color:#6d28d9;}
-  .tabs-hint{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;padding-left:8px;}
+  .tabs-hint{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap;padding-left:8px;}
   .tabs-hint b{color:var(--accent);font-weight:700;}
 
   /* ---------- layout ---------- */
   .layout{
-    display:grid;
-    grid-template-columns:404px minmax(0,1fr);
-    min-height:0;
+    display:grid;grid-template-columns:404px minmax(0,1fr);
+    height:clamp(520px, calc(100vh - 260px), 760px);
+    border-bottom:1px solid var(--line);
   }
-
-  /* ---------- sidebar ---------- */
   .sidebar{
     min-height:0;overflow-y:auto;
     border-right:1px solid var(--line);
     background:var(--bg);
-    padding:16px 16px 26px;
+    padding:14px 14px 26px;
     scrollbar-width:thin;
   }
   .sidebar::-webkit-scrollbar{width:9px;}
   .sidebar::-webkit-scrollbar-thumb{background:#dcd8d0;border-radius:9px;border:3px solid var(--bg);}
-  .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 10px;}
-  .sidebar-head h2{margin:0;font-size:15px;font-weight:800;letter-spacing:-.02em;}
+  .sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 9px;}
+  .sidebar-head h2{font-size:15px;font-weight:800;letter-spacing:-.02em;}
   .sidebar-head .sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-left:6px;}
   .only-confirmed{
     display:inline-flex;align-items:center;gap:6px;
@@ -157,17 +186,36 @@
   }
   .only-confirmed input{accent-color:var(--ok);margin:0;width:13px;height:13px;}
 
+  /* filter chips */
+  .filters{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px;}
+  .fchip{
+    display:inline-flex;align-items:center;gap:5px;
+    height:28px;padding:0 10px;border-radius:999px;
+    border:1px solid var(--line-strong);background:var(--surface);
+    color:var(--ink-2);font-size:11.5px;font-weight:700;letter-spacing:-.01em;
+    cursor:pointer;transition:.14s ease;
+  }
+  .fchip:hover{border-color:#c4bfb4;background:#fbfaf8;}
+  .fchip .n{font-size:10px;font-weight:800;color:var(--muted);}
+  .fchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .fchip[aria-pressed="true"] .n{color:rgba(255,255,255,.7);}
+
   .legend{
     display:flex;flex-wrap:wrap;gap:6px;
-    padding:10px 12px;margin-bottom:12px;
+    padding:9px 11px;margin-bottom:11px;
     background:var(--surface);border:1px solid var(--line);border-radius:12px;
   }
   .legend .legend-title{
-    width:100%;font-size:10.5px;font-weight:800;color:var(--muted);
+    width:100%;font-size:10px;font-weight:800;color:var(--muted);
     letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;
   }
-
   .cards{display:flex;flex-direction:column;gap:10px;}
+  .load-more{
+    display:block;width:100%;margin-top:2px;height:40px;border-radius:11px;
+    border:1px dashed var(--line-strong);background:#fdfcfa;color:var(--ink-2);
+    font-size:12.5px;font-weight:800;letter-spacing:-.01em;cursor:pointer;
+  }
+  .load-more:hover{border-color:var(--accent);color:var(--accent);background:#fff8f6;}
 
   /* ---------- badges ---------- */
   .badge{
@@ -181,19 +229,15 @@
   .badge-pending{color:var(--pending);background:var(--pending-bg);border-color:rgba(177,106,12,.16);}
   .badge-review{color:var(--review);background:var(--review-bg);border-color:rgba(31,95,208,.16);}
   .badge-official{color:var(--official);background:var(--official-bg);border-color:rgba(91,96,104,.2);}
-  .badge-pharmacy{color:#6d28d9;background:#f1ebfd;border-color:rgba(109,40,217,.18);}
+  .badge-pharmacy{color:var(--pharmacy);background:#f1ebfd;border-color:rgba(109,40,217,.18);}
 
   /* ---------- card ---------- */
   .card{
-    position:relative;
-    display:block;width:100%;text-align:left;
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:13px 14px 12px;
-    cursor:pointer;
+    position:relative;display:block;width:100%;text-align:left;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:13px 14px 11px;cursor:pointer;
     box-shadow:var(--shadow-sm);
-    transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+    transition:box-shadow .18s ease,border-color .18s ease;
     -webkit-tap-highlight-color:transparent;
   }
   .card:hover{border-color:#d7d2c9;box-shadow:0 2px 4px rgba(25,27,31,.05),0 10px 26px rgba(25,27,31,.08);}
@@ -214,40 +258,45 @@
   .card-no.is-pending{background:#f0dcb8;color:#7c4a05;}
   .card-no.is-review{background:#dbe5fa;color:#1a4aa8;}
   .card-no.is-official{background:#e0e3e7;color:#4b515a;}
-  .card-no.is-pharmacy{background:#6d28d9;color:#fff;font-size:10px;}
+  .card-no.is-pharmacy{background:var(--pharmacy);color:#fff;font-size:10px;}
   .card-titles{flex:1;min-width:0;}
-  .card-titles h3{
-    margin:0;font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1.32;
-    color:var(--ink);
-  }
-  .card-titles .cn{
-    margin:1px 0 0;font-size:11.5px;color:var(--muted);letter-spacing:.01em;
-    font-weight:500;
-  }
+  .card-titles h3{font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1.32;color:var(--ink);}
+  .card-titles .cn{margin-top:1px;font-size:11.5px;color:var(--muted);letter-spacing:.01em;font-weight:500;}
   .card-top .badge{flex:none;margin-top:1px;}
 
-  .chips{display:flex;flex-wrap:wrap;gap:4px;margin:9px 0 0;}
-  .chip.planb{background:#f1ebfd;color:#5b21b6;}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;}
   .chip{
     font-size:10.5px;font-weight:600;color:var(--ink-2);
     background:#f5f3ef;border-radius:6px;padding:2px 6px;letter-spacing:-.01em;
   }
   .chip.city{background:var(--accent-soft);color:#a93a25;}
+  .chip.planb{background:#f1ebfd;color:#5b21b6;}
+  .chip.kr{background:var(--ok-bg);color:#0b6b4a;}
 
-  .facts{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:baseline;}
-  .facts dt{
-    font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;letter-spacing:-.01em;
-  }
+  .facts{margin:9px 0 0;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;align-items:baseline;}
+  .facts dt{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;letter-spacing:-.01em;}
   .facts dd{margin:0;font-size:12.5px;color:var(--ink-2);line-height:1.46;letter-spacing:-.01em;}
   .facts dd b{color:var(--ink);font-weight:700;}
   .facts dd .price{color:#b4472c;font-weight:800;}
 
   .note{
-    margin:10px 0 0;padding:7px 9px;
+    margin-top:9px;padding:7px 9px;
     font-size:11.5px;line-height:1.45;color:#7a6a52;
     background:#fbf7ee;border:1px dashed #e8dcc2;border-radius:8px;letter-spacing:-.01em;
   }
   .note strong{color:#8a5a08;font-weight:800;}
+
+  .card-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);}
+  .act{
+    display:inline-flex;align-items:center;gap:4px;
+    height:27px;padding:0 9px;border-radius:8px;
+    border:1px solid var(--line-strong);background:#fff;
+    font-size:11px;font-weight:700;color:var(--ink-2);
+    cursor:pointer;letter-spacing:-.01em;
+  }
+  .act:hover{border-color:#c4bfb4;background:#fbfaf8;}
+  .act.primary{border-color:rgba(217,72,47,.35);background:#fff8f6;color:#b53a24;}
+  .act.primary:hover{background:#fdece8;border-color:var(--accent);}
 
   .sidebar-foot{
     margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
@@ -267,48 +316,34 @@
   .leaflet-tile{opacity:.94;}
   #map.low-zoom .leaflet-tile-pane{filter:grayscale(.95) brightness(1.12) contrast(.8);}
   #map.low-zoom .leaflet-tile{opacity:.5 !important;}
-  .leaflet-control-attribution{
-    font-size:10px !important;background:rgba(255,255,255,.82) !important;color:#6b7078 !important;
-    padding:2px 6px !important;border-radius:6px 0 0 0;
-  }
+  .leaflet-control-attribution{font-size:10px !important;background:rgba(255,255,255,.82) !important;color:#6b7078 !important;padding:2px 6px !important;}
   .leaflet-control-attribution a{color:#4d5560 !important;}
-  .leaflet-control-zoom{
-    border:none !important;box-shadow:var(--shadow-sm) !important;border-radius:10px !important;overflow:hidden;
-  }
+  .leaflet-control-zoom{border:none !important;box-shadow:var(--shadow-sm) !important;border-radius:10px !important;overflow:hidden;}
   .leaflet-control-zoom a{
     width:32px !important;height:32px !important;line-height:32px !important;
-    color:var(--ink) !important;background:#fff !important;border-bottom:1px solid var(--line) !important;
-    font-size:16px !important;
+    color:var(--ink) !important;background:#fff !important;border-bottom:1px solid var(--line) !important;font-size:16px !important;
   }
   .leaflet-control-zoom a:hover{background:#f7f5f2 !important;}
-
   .map-legend{
     position:absolute;right:14px;top:14px;z-index:500;
-    align-items:flex-start;
-    background:rgba(255,255,255,.94);
-    backdrop-filter:blur(6px);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:9px 11px;
-    box-shadow:var(--shadow-sm);
-    display:flex;flex-direction:column;gap:5px;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:12px;padding:9px 11px;
+    box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:5px;
   }
-  .map-legend .ml-title{
-    font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;
-    margin-bottom:1px;
-  }
+  .map-legend .ml-title{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
   .map-legend .badge{font-size:10.5px;padding:2px 7px 2px 6px;}
   .map-legend .badge::before{width:5px;height:5px;}
-
   .map-hint{
     position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:500;
-    background:rgba(25,27,31,.82);color:#fff;
-    font-size:11.5px;font-weight:600;letter-spacing:-.01em;
-    padding:6px 12px;border-radius:999px;
-    box-shadow:0 6px 18px rgba(25,27,31,.22);
-    white-space:nowrap;pointer-events:none;
-    backdrop-filter:blur(4px);
+    background:rgba(25,27,31,.82);color:#fff;font-size:11.5px;font-weight:600;letter-spacing:-.01em;
+    padding:6px 12px;border-radius:999px;box-shadow:0 6px 18px rgba(25,27,31,.22);
+    white-space:nowrap;pointer-events:none;backdrop-filter:blur(4px);
   }
+  .map-fallback{
+    position:absolute;inset:0;display:grid;place-content:center;gap:4px;text-align:center;
+    padding:24px;font-size:12.5px;line-height:1.7;color:var(--muted);background:#f1efe9;
+  }
+  .map-fallback b{color:var(--ink-2);font-size:13.5px;}
 
   /* ---------- pins ---------- */
   .pin-wrap{background:none;border:none;}
@@ -316,8 +351,6 @@
   .pin-wrap.is-selected svg{transform:scale(1.16);}
   .pin-wrap.is-selected svg path{stroke:#d9482f;stroke-width:2.6;}
   .pin-num{font-size:12.5px;font-weight:800;fill:#fff;letter-spacing:-.02em;}
-
-  /* ---------- city clusters (전체 뷰) ---------- */
   .cluster-wrap{background:none;border:none;}
   .cluster{
     position:absolute;left:0;top:0;transform:translate(-50%,-52%);
@@ -326,8 +359,7 @@
   .cluster-bubble{
     min-width:42px;height:42px;padding:0 10px;border-radius:999px;
     display:flex;align-items:center;justify-content:center;gap:4px;
-    background:var(--ink);color:#fff;
-    font-size:15px;font-weight:800;letter-spacing:-.02em;
+    background:var(--ink);color:#fff;font-size:15px;font-weight:800;letter-spacing:-.02em;
     border:2px solid #fff;
     box-shadow:0 6px 16px rgba(25,27,31,.28), 0 1px 2px rgba(25,27,31,.2);
     transition:transform .16s ease, background .16s ease;
@@ -342,55 +374,40 @@
   .cluster-wrap:hover .cluster-bubble{transform:scale(1.06);background:#000;}
 
   /* ---------- leaflet popup ---------- */
-  .leaflet-popup-content-wrapper{
-    border-radius:12px !important;
-    box-shadow:0 10px 30px rgba(25,27,31,.18) !important;
-    padding:0 !important;
-  }
-  .leaflet-popup-content{margin:0 !important;width:262px !important;font-family:inherit;}
+  .leaflet-popup-content-wrapper{border-radius:12px !important;box-shadow:0 10px 30px rgba(25,27,31,.18) !important;padding:0 !important;}
+  .leaflet-popup-content{margin:0 !important;width:264px !important;font-family:inherit;}
   .leaflet-popup-tip{box-shadow:none !important;}
   .leaflet-popup-close-button{color:#8a8f98 !important;padding:7px 7px 0 0 !important;}
   .pop{padding:13px 14px 12px;}
-  .pop .pop-city{
-    font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;
-  }
-  .pop h4{margin:3px 0 1px;font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1.3;}
-  .pop .pop-cn{margin:0 0 8px;font-size:11px;color:var(--muted);}
+  .pop .pop-city{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;}
+  .pop h4{margin-top:3px;font-size:14px;font-weight:800;letter-spacing:-.02em;line-height:1.3;}
+  .pop .pop-cn{margin:1px 0 8px;font-size:11px;color:var(--muted);}
   .pop .badge{margin-bottom:9px;}
   .pop dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;}
   .pop dt{font-size:10.5px;font-weight:700;color:var(--muted);white-space:nowrap;}
   .pop dd{margin:0;font-size:11.5px;color:var(--ink-2);line-height:1.42;}
-  .pop .pop-note{
-    margin:9px 0 0;font-size:10.5px;color:#8a6a2a;background:#fbf7ee;
-    border-radius:6px;padding:5px 7px;line-height:1.4;
+  .pop .pop-note{margin-top:9px;font-size:10.5px;color:#8a6a2a;background:#fbf7ee;border-radius:6px;padding:5px 7px;line-height:1.4;}
+  .pop .pop-taxi{
+    margin-top:9px;width:100%;height:30px;border-radius:8px;
+    border:1px solid rgba(217,72,47,.35);background:#fff8f6;color:#b53a24;
+    font-size:11.5px;font-weight:800;cursor:pointer;
   }
+  .pop .pop-taxi:hover{background:#fdece8;}
 
-  /* ---------- guide modal ---------- */
-  .modal{
-    position:fixed;inset:0;z-index:1000;
-    display:flex;align-items:center;justify-content:center;
-    padding:24px;
-  }
+  /* ---------- modal ---------- */
+  .modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;}
   .modal[hidden]{display:none;}
   .modal-backdrop{position:absolute;inset:0;background:rgba(20,22,26,.42);backdrop-filter:blur(2px);}
   .modal-panel{
-    position:relative;
-    width:min(680px,100%);max-height:min(86vh,860px);
-    background:var(--surface);border-radius:18px;
-    box-shadow:var(--shadow-md);
-    display:flex;flex-direction:column;overflow:hidden;
-    animation:pop .18s ease-out;
+    position:relative;width:min(680px,100%);max-height:min(86vh,860px);
+    background:var(--surface);border-radius:18px;box-shadow:var(--shadow-md);
+    display:flex;flex-direction:column;overflow:hidden;animation:pop .18s ease-out;
   }
   @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.99);}to{opacity:1;transform:none;}}
-  .modal-head{
-    display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
-    padding:20px 22px 14px;border-bottom:1px solid var(--line);
-  }
-  .modal-head .kicker{
-    font-size:10.5px;font-weight:800;color:var(--accent);letter-spacing:.07em;text-transform:uppercase;
-  }
-  .modal-head h2{margin:4px 0 0;font-size:20px;font-weight:800;letter-spacing:-.03em;}
-  .modal-head p{margin:5px 0 0;font-size:12.5px;color:var(--muted);letter-spacing:-.01em;}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px 22px 14px;border-bottom:1px solid var(--line);}
+  .modal-head .kicker{font-size:10.5px;font-weight:800;color:var(--accent);letter-spacing:.07em;text-transform:uppercase;}
+  .modal-head h2{margin-top:4px;font-size:20px;font-weight:800;letter-spacing:-.03em;}
+  .modal-head p{margin-top:5px;font-size:12.5px;color:var(--muted);letter-spacing:-.01em;}
   .modal-close{
     flex:none;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
     background:#fff;color:var(--ink-2);font-size:16px;line-height:1;cursor:pointer;
@@ -399,38 +416,22 @@
   .modal-body{padding:18px 22px 22px;overflow-y:auto;scrollbar-width:thin;}
   .guide-block{margin-bottom:18px;}
   .guide-block:last-child{margin-bottom:0;}
-  .guide-block h3{
-    margin:0 0 8px;font-size:13px;font-weight:800;letter-spacing:-.02em;
-    display:flex;align-items:center;gap:7px;
-  }
-  .guide-block h3 .n{
-    width:19px;height:19px;border-radius:6px;background:var(--accent-soft);color:var(--accent);
-    display:grid;place-items:center;font-size:10.5px;font-weight:800;
-  }
+  .guide-block h3{margin-bottom:8px;font-size:13px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:7px;}
+  .guide-block h3 .n{width:19px;height:19px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:10.5px;font-weight:800;flex:none;}
   .guide-block ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;}
   .guide-block li{font-size:12.5px;color:var(--ink-2);line-height:1.55;letter-spacing:-.01em;}
   .guide-block li b{color:var(--ink);font-weight:800;}
   .guide-block li .hl{color:var(--accent);font-weight:800;}
-  .keyfacts{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 16px;
-  }
-  .keyfact{
-    background:#faf9f6;border:1px solid var(--line);border-radius:12px;padding:10px 11px;
-  }
+  .keyfacts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  .keyfact{background:#faf9f6;border:1px solid var(--line);border-radius:12px;padding:10px 11px;}
   .keyfact .k{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:-.01em;line-height:1.35;}
   .keyfact .v{margin-top:3px;font-size:15px;font-weight:800;letter-spacing:-.02em;}
   .keyfact .v small{font-size:10.5px;font-weight:600;color:var(--muted);margin-left:2px;}
   .status-list{display:flex;flex-direction:column;gap:7px;}
-  .status-row{
-    display:flex;align-items:center;gap:10px;
-    padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;
-  }
+  .status-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;}
   .status-row .who{flex:1;min-width:0;font-size:12.5px;font-weight:700;letter-spacing:-.01em;}
   .status-row .who small{display:block;font-weight:500;font-size:11px;color:var(--muted);margin-top:1px;}
-  .guide-foot{
-    margin-top:4px;padding-top:14px;border-top:1px solid var(--line);
-    font-size:11.5px;color:var(--muted);line-height:1.6;letter-spacing:-.01em;
-  }
+  .guide-foot{margin-top:4px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6;letter-spacing:-.01em;}
   .guide-foot b{color:var(--ink-2);}
   .price-table{width:100%;border-collapse:collapse;margin:2px 0 6px;font-size:12px;}
   .price-table th,.price-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;letter-spacing:-.01em;}
@@ -443,12 +444,9 @@
   /* ---------- calculator ---------- */
   .calc-panel{width:min(860px,100%);}
   .calc-grid{display:grid;grid-template-columns:1.08fr .92fr;min-height:0;overflow-y:auto;}
-  .calc-form{padding:18px 22px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;align-content:start;}
+  .calc-form{padding:18px 22px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;}
   .field.full{grid-column:1/-1;}
-  .field .flabel{
-    display:flex;align-items:baseline;gap:6px;
-    font-size:11.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;margin-bottom:6px;
-  }
+  .field .flabel{display:flex;align-items:baseline;gap:6px;font-size:11.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;margin-bottom:6px;}
   .field .flabel em{font-style:normal;font-weight:600;font-size:11px;color:var(--muted);}
   .seg{display:flex;gap:4px;background:#f2f0ec;padding:3px;border-radius:10px;}
   .seg button{
@@ -458,51 +456,28 @@
   }
   .seg button:hover{color:var(--ink);}
   .seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(25,27,31,.12);}
-  .amount{
-    display:flex;align-items:center;gap:6px;
-    border:1px solid var(--line-strong);border-radius:10px;background:#fff;
-    padding:0 11px;height:40px;transition:.14s ease;
-  }
+  .amount{display:flex;align-items:center;gap:6px;border:1px solid var(--line-strong);border-radius:10px;background:#fff;padding:0 11px;height:40px;transition:.14s ease;}
   .amount:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,72,47,.1);}
-  .amount input{
-    flex:1;min-width:0;border:none;outline:none;background:transparent;
-    font-family:inherit;font-size:14px;font-weight:800;color:var(--ink);
-    text-align:right;letter-spacing:-.01em;
-  }
+  .amount input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:14px;font-weight:800;color:var(--ink);text-align:right;letter-spacing:-.01em;}
   .amount .unit{font-size:11.5px;font-weight:700;color:var(--muted);}
   .field .hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.45;letter-spacing:-.01em;}
   .field .hint b{color:var(--ink-2);font-weight:700;}
   .quick{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
-  .quick button{
-    height:26px;padding:0 9px;border-radius:7px;border:1px solid var(--line);
-    background:#fff;font-size:11px;font-weight:700;color:var(--ink-2);cursor:pointer;
-  }
+  .quick button{height:26px;padding:0 9px;border-radius:7px;border:1px solid var(--line);background:#fff;font-size:11px;font-weight:700;color:var(--ink-2);cursor:pointer;}
   .quick button:hover{border-color:#c9c3b9;background:#faf9f7;}
   .quick button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff;}
   .quick button.rt{display:inline-flex;align-items:center;gap:5px;}
   .quick button.rt .p{font-weight:800;font-variant-numeric:tabular-nums;opacity:.72;}
   .quick button[aria-pressed="true"] .p{opacity:.86;}
-
   .calc-mini{display:none;font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:-.01em;}
-
   .calc-reset{
-    grid-column:1/-1;justify-self:start;margin-top:2px;
-    border:none;background:none;padding:2px 0;
+    grid-column:1/-1;justify-self:start;margin-top:2px;border:none;background:none;padding:2px 0;
     font-size:11px;font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer;
   }
   .calc-reset:hover{color:var(--ink);}
-
-  .calc-result{
-    background:#fbfaf7;border-left:1px solid var(--line);
-    padding:20px 22px 24px;display:flex;flex-direction:column;gap:15px;
-  }
-  .calc-result .rl{
-    font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;
-  }
-  .total-box .total-num{
-    margin-top:3px;font-size:31px;font-weight:800;letter-spacing:-.04em;line-height:1.1;
-    font-variant-numeric:tabular-nums;
-  }
+  .calc-result{background:#fbfaf7;border-left:1px solid var(--line);padding:20px 22px 24px;display:flex;flex-direction:column;gap:15px;}
+  .calc-result .rl{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
+  .total-box .total-num{margin-top:3px;font-size:31px;font-weight:800;letter-spacing:-.04em;line-height:1.1;font-variant-numeric:tabular-nums;}
   .total-box .total-sub{font-size:11px;color:var(--muted);margin-top:5px;letter-spacing:-.01em;}
   .breaks{display:flex;flex-direction:column;gap:7px;}
   .brow{display:flex;align-items:center;gap:8px;font-size:12px;}
@@ -512,10 +487,7 @@
   .brow .bv{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
   .stack{display:flex;height:8px;border-radius:99px;overflow:hidden;background:#eeebe5;}
   .stack i{display:block;height:100%;transition:width .25s ease;}
-  .save-box{
-    border-radius:12px;padding:13px 14px;
-    background:var(--ok-bg);border:1px solid rgba(14,122,85,.18);
-  }
+  .save-box{border-radius:12px;padding:13px 14px;background:var(--ok-bg);border:1px solid rgba(14,122,85,.18);}
   .save-box.neg{background:#fdecea;border-color:rgba(190,45,30,.18);}
   .save-box .sl{font-size:11px;font-weight:800;color:var(--ok);letter-spacing:-.01em;}
   .save-box.neg .sl{color:#b53a24;}
@@ -523,89 +495,368 @@
   .save-box.neg .sv{color:#b53a24;}
   .save-box .sc{font-size:11px;color:#3f6b59;margin-top:3px;letter-spacing:-.01em;}
   .save-box.neg .sc{color:#8d5147;}
-  .calc-caveat{font-size:10.5px;color:var(--muted);line-height:1.55;letter-spacing:-.01em;margin:0;}
+  .calc-caveat{font-size:10.5px;color:var(--muted);line-height:1.55;letter-spacing:-.01em;}
   .calc-caveat b{color:var(--ink-2);}
 
+  /* ---------- sections ---------- */
+  .section{max-width:1240px;margin:0 auto;padding:46px 22px 10px;}
+  .section + .section{padding-top:40px;}
+  .sec-head{max-width:760px;margin-bottom:18px;}
+  .sec-kicker{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);}
+  .sec-head h2{margin-top:6px;font-size:24px;font-weight:800;letter-spacing:-.04em;line-height:1.24;}
+  .sec-head p{margin-top:7px;font-size:13.5px;color:var(--muted);line-height:1.6;letter-spacing:-.015em;}
+  .sec-head p b{color:var(--ink-2);font-weight:700;}
+
+  /* compare table */
+  .cmp-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);}
+  .cmp-table{width:100%;border-collapse:collapse;min-width:680px;font-size:12.5px;}
+  .cmp-table th,.cmp-table td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left;letter-spacing:-.01em;}
+  .cmp-table thead th{
+    background:#faf9f6;font-size:11px;font-weight:800;color:var(--muted);
+    letter-spacing:.03em;text-transform:uppercase;position:sticky;top:0;
+  }
+  .cmp-table thead th.cn-col{color:#b4472c;}
+  .cmp-table thead th.jp-col{color:#1f5fd0;}
+  .cmp-table th.row-h{width:118px;font-size:11.5px;font-weight:800;color:var(--ink);background:#fcfbf9;}
+  .cmp-table thead th:first-child{position:sticky;left:0;z-index:3;background:#faf9f6;}
+  .cmp-table tbody th.row-h{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 var(--line);}
+  .cmp-table td{color:var(--ink-2);line-height:1.5;}
+  .cmp-table tr:last-child td,.cmp-table tr:last-child th{border-bottom:none;}
+  .cmp-table .big{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.02em;display:block;}
+  .cmp-table .sub{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
+  .cmp-table .win{color:#b4472c;font-weight:800;}
+  .cmp-table ul{margin:0;padding-left:15px;display:flex;flex-direction:column;gap:3px;}
+  .cmp-table li{font-size:12px;line-height:1.45;}
+  .cmp-notes{margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.65;letter-spacing:-.01em;}
+  .cmp-notes b{color:var(--ink-2);}
+  .scroll-hint{display:none;font-size:10.5px;font-weight:700;color:var(--muted);margin:0 0 6px;letter-spacing:-.01em;}
+  .scroll-hint span{color:var(--accent);}
+
+  /* pick cards */
+  .pick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:16px;}
+  .pick{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 15px;box-shadow:var(--shadow-sm);}
+  .pick .pk{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
+  .pick h3{margin-top:4px;font-size:14.5px;font-weight:800;letter-spacing:-.025em;}
+  .pick p{margin-top:5px;font-size:11.5px;color:var(--ink-2);line-height:1.55;}
+  .pick p b{color:var(--ink);font-weight:800;}
+
+  /* routes */
+  .route-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);}
+  .route-table{width:100%;border-collapse:collapse;min-width:720px;font-size:12.5px;}
+  .route-table th,.route-table td{padding:10px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;letter-spacing:-.01em;}
+  .route-table thead th{background:#faf9f6;font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+  .route-table td{color:var(--ink-2);}
+  .route-table tr:last-child td{border-bottom:none;}
+  .route-table .city{font-weight:800;color:var(--ink);white-space:nowrap;}
+  .route-table .city small{display:block;font-weight:600;color:var(--muted);font-size:10.5px;}
+  .route-table .path b{color:var(--ink);font-weight:800;}
+  .route-table .src{font-size:10.5px;color:var(--muted);white-space:nowrap;}
+  .route-table .t{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;}
+
+  /* phrases */
+  .phrase-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .phrase-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:15px 15px 13px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:8px;
+  }
+  .phrase-num{
+    font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;
+  }
+  .phrase-cn{
+    font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.45;color:var(--ink);
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .phrase-pron{font-size:12px;color:#8a6a2a;background:#fbf7ee;border-radius:7px;padding:5px 8px;letter-spacing:-.01em;}
+  .phrase-ko{font-size:12.5px;color:var(--ink-2);line-height:1.5;letter-spacing:-.01em;}
+  .phrase-acts{display:flex;gap:5px;margin-top:auto;padding-top:4px;}
+  .phrase-acts .act{flex:1;justify-content:center;}
+
+  /* checklist */
+  .check-wrap{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;box-shadow:var(--shadow-sm);}
+  .check-top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .check-count{font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;}
+  .check-count span{color:var(--accent);}
+  .check-reset{border:none;background:none;font-size:11.5px;font-weight:700;color:var(--muted);text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
+  .check-reset:hover{color:var(--ink);}
+  .bar{height:7px;border-radius:99px;background:#eeebe5;overflow:hidden;margin-bottom:15px;}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0704f,#d9482f);transition:width .28s ease;}
+  .check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  .check-item{
+    display:flex;align-items:flex-start;gap:9px;
+    padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fdfcfa;
+    cursor:pointer;transition:.14s ease;user-select:none;
+  }
+  .check-item:hover{border-color:#d2ccc1;background:#fff;}
+  .check-item input{margin:2px 0 0;width:15px;height:15px;accent-color:var(--ok);flex:none;cursor:pointer;}
+  .check-item .ct{font-size:12.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink);line-height:1.4;}
+  .check-item .ct small{display:block;font-weight:500;font-size:11px;color:var(--muted);margin-top:1px;line-height:1.4;}
+  .check-item.done{border-color:rgba(14,122,85,.3);background:var(--ok-bg);}
+  .check-item.done .ct{color:#356b58;text-decoration:line-through;text-decoration-color:rgba(14,122,85,.4);}
+
+  /* customs warning */
+  .warn-band{
+    background:linear-gradient(135deg,#fff5f2,#fdece8);
+    border:1px solid rgba(217,72,47,.24);border-radius:16px;padding:18px;
+  }
+  .warn-head{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:800;letter-spacing:-.02em;color:#8f2c19;}
+  .warn-head .ico{font-size:18px;}
+  .warn-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:13px;}
+  .warn-card{background:#fff;border:1px solid rgba(217,72,47,.16);border-radius:12px;padding:12px 13px;}
+  .warn-card .k{font-size:11px;font-weight:800;color:var(--accent);letter-spacing:-.01em;}
+  .warn-card .v{margin-top:3px;font-size:14.5px;font-weight:800;letter-spacing:-.025em;line-height:1.3;}
+  .warn-card .s{font-size:11.5px;color:#7a5a52;margin-top:4px;line-height:1.5;}
+  .warn-foot{margin-top:13px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:#8f5f52;}
+  .link-btn{
+    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:9px;
+    border:1px solid rgba(217,72,47,.32);background:#fff;color:#b53a24;
+    font-size:11.5px;font-weight:800;cursor:pointer;
+  }
+  .link-btn:hover{background:#fdece8;}
+
+  /* shop */
+  .shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+  .shop-card{
+    position:relative;display:flex;flex-direction:column;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:15px;box-shadow:var(--shadow-sm);
+  }
+  .shop-ico{font-size:22px;line-height:1;}
+  .shop-tag{
+    position:absolute;right:12px;top:12px;
+    font-size:9.5px;font-weight:800;letter-spacing:.03em;
+    background:#f1efeb;color:var(--muted);border-radius:5px;padding:2px 6px;
+  }
+  .shop-card h3{margin-top:9px;font-size:14px;font-weight:800;letter-spacing:-.025em;line-height:1.35;}
+  .shop-spec{margin-top:4px;font-size:11px;color:var(--accent);font-weight:700;letter-spacing:-.01em;}
+  .shop-why{margin-top:7px;font-size:12px;color:var(--ink-2);line-height:1.5;letter-spacing:-.01em;flex:1;}
+  .shop-cta{
+    margin-top:11px;display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    height:34px;border-radius:9px;background:var(--ink);color:#fff;
+    font-size:12px;font-weight:800;text-decoration:none;letter-spacing:-.01em;
+  }
+  .shop-cta:hover{background:#000;}
+  .shop-cta.pending{background:#f1efeb;color:var(--muted);pointer-events:none;}
+  .disclosure{
+    margin-top:14px;padding:11px 13px;border-radius:10px;
+    background:#f9f8f5;border:1px dashed var(--line-strong);
+    font-size:11px;color:var(--muted);line-height:1.6;letter-spacing:-.01em;
+  }
+  .disclosure b{color:var(--ink-2);}
+
+  /* footer */
+  .page-foot{max-width:1240px;margin:34px auto 0;padding:22px 22px 44px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.7;letter-spacing:-.01em;}
+  .page-foot b{color:var(--ink-2);}
+  .page-foot .row{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+  .page-foot .row a,.page-foot .row button{
+    border:none;background:none;padding:0;font-size:11.5px;font-weight:700;color:var(--ink-2);
+    text-decoration:underline;text-underline-offset:2px;cursor:pointer;
+  }
+
+  /* ---------- flashcard (taxi / phrase) ---------- */
+  .flash{
+    position:fixed;inset:0;z-index:1200;display:flex;flex-direction:column;
+    background:#111317;color:#fff;padding:18px 18px 22px;
+    overflow-y:auto;
+  }
+  .flash[hidden]{display:none;}
+  .flash-top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .flash-kicker{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#ff9f8a;}
+  .flash-close{
+    width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.06);color:#fff;font-size:17px;cursor:pointer;flex:none;
+  }
+  .flash-close:hover{background:rgba(255,255,255,.14);}
+  .flash-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:18px 0;max-width:1100px;margin:0 auto;width:100%;}
+  .flash-block{padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .flash-block:last-of-type{border-bottom:none;padding-bottom:0;}
+  .flash-label{font-size:11.5px;font-weight:800;letter-spacing:.08em;color:rgba(255,255,255,.45);text-transform:uppercase;}
+  .flash-cn{
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:clamp(32px,4vw,58px);font-weight:800;line-height:1.3;letter-spacing:-.01em;
+    word-break:keep-all;margin-top:6px;
+  }
+  .flash-addr{font-size:clamp(28px,3.5vw,50px);font-weight:800;line-height:1.35;color:#ffd9cf;margin-top:6px;word-break:keep-all;}
+  .flash-station{font-size:clamp(19px,2.2vw,30px);font-weight:700;color:#c9d6ff;line-height:1.4;margin-top:6px;}
+  .flash-ko{font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;}
+  .flash-big .flash-cn{font-size:clamp(40px,5vw,74px);}
+  .flash-big .flash-addr{font-size:clamp(34px,4.4vw,62px);}
+  .flash-big .flash-station{font-size:clamp(23px,2.7vw,38px);}
+  .flash-bigger .flash-cn{font-size:clamp(48px,6.2vw,92px);}
+  .flash-bigger .flash-addr{font-size:clamp(42px,5.4vw,78px);}
+  .flash-bigger .flash-station{font-size:clamp(27px,3.3vw,46px);}
+  .flash-acts{display:flex;gap:8px;flex-wrap:wrap;}
+  .flash-btn{
+    height:44px;padding:0 16px;border-radius:11px;border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:800;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .flash-btn:hover{background:rgba(255,255,255,.16);}
+  .flash-btn.solid{background:#fff;color:#191b1f;border-color:#fff;}
+  .flash-btn.solid:hover{background:#f1efeb;}
+  .flash-note{font-size:11.5px;color:rgba(255,255,255,.42);line-height:1.6;}
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:rgba(25,27,31,.94);color:#fff;font-size:12.5px;font-weight:700;
+    padding:10px 16px;border-radius:999px;box-shadow:0 8px 24px rgba(25,27,31,.3);
+    opacity:0;pointer-events:none;transition:.22s ease;z-index:1400;letter-spacing:-.01em;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
   /* ---------- responsive ---------- */
-  @media (max-width: 1080px){
-    .layout{grid-template-columns:360px minmax(0,1fr);}
-    .brand .tagline{max-width:46vw;}
+  @media (max-width:1120px){
+    .layout{grid-template-columns:364px minmax(0,1fr);}
+    .phrase-grid,.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
-  @media (max-width: 860px){
-    .calc-grid{grid-template-columns:1fr;}
-    .calc-form{grid-template-columns:1fr;}
-    .calc-result{order:-1;border-left:none;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;gap:10px;padding:14px 16px 16px;box-shadow:0 6px 16px rgba(25,27,31,.05);}
-    .calc-result .stack,.calc-result .breaks,.calc-caveat{display:none;}
-    .calc-mini{display:block;}
-    .total-box .total-num{font-size:26px;}
-    .save-box{padding:10px 12px;}
-    .save-box .sv{font-size:20px;}
-    .calc-result{border-left:none;border-top:1px solid var(--line);}
-    .calc-form{padding:16px 16px 20px;gap:15px;}
-    .calc-result{padding:16px 16px 22px;}
-    .total-box .total-num{font-size:27px;}
-  }
-  @media (max-width: 860px){
-    body{height:auto;min-height:100dvh;overflow:visible;display:block;}
-    .app-header{padding:10px 12px;gap:8px;}
-    .brand{flex:1 1 auto;min-width:0;gap:9px;}
-    .header-actions{flex:0 0 auto;}
-    .brand > div{min-width:0;}
+  @media (max-width:900px){
+    html{scroll-padding-top:96px;}
+    .app-header{padding:9px 13px;gap:8px;}
+    .brand{gap:9px;min-width:0;flex:1;}
     .brand-mark{width:34px;height:34px;border-radius:10px;font-size:17px;}
     .brand h1{font-size:15px;overflow:hidden;text-overflow:ellipsis;}
     .brand h1 .en{display:none;}
     .brand .tagline{display:none;}
-    .btn-calc,.btn-guide{height:33px;padding:0 10px;font-size:11.5px;gap:5px;}
-    .btn-calc .ico{display:none;}
-    .btn-calc .lbl-full,.btn-guide .lbl-full{display:none;}
-    .btn-calc .lbl-short,.btn-guide .lbl-short{display:inline;}
-    .cluster{gap:3px;flex-direction:row;transform:translate(-17px,-50%);}
-    .cluster-bubble{min-width:34px;height:34px;font-size:13px;padding:0 8px;}
-    .cluster-label{font-size:10px;padding:1px 6px;}
-    .city-tabs{padding:9px 14px;}
+    .header-actions{gap:5px;}
+    .btn-calc,.btn-guide{height:33px;padding:0 10px;font-size:11.5px;}
+    .btn-ghost{display:none;}
+    .lbl-full{display:none;}
+    .lbl-short{display:inline;}
+    .hero{padding:18px 14px 15px;}
+    .hero-top{margin-bottom:12px;align-items:flex-start;}
+    .hero-copy h2{font-size:19.5px;letter-spacing:-.035em;}
+    .hero-copy p{font-size:12px;}
+    .share-btn{height:32px;font-size:11.5px;padding:0 11px;flex:none;}
+    .kpis{grid-template-columns:1fr 1fr;gap:7px;}
+    .kpi{padding:9px 10px;gap:7px;}
+    .kpi-v{font-size:13px;}
+    .kpi-s{font-size:10px;}
+    .city-tabs{padding:8px 13px;top:51px;}
     .tabs-hint{display:none;}
-    .layout{display:flex;flex-direction:column;min-height:0;}
-    .map-wrap{order:-1;height:42vh;min-height:300px;flex:none;}
-    .map-hint{display:none;}
-    .map-legend{display:none;}
-    .map-legend .badge{font-size:9.5px;padding:2px 6px 2px 5px;gap:4px;}
-    .map-legend .badge::before{width:5px;height:5px;}
-    .map-legend .ml-title{display:none;}
-    .sidebar{overflow:visible;border-right:none;padding:14px 14px 30px;}
+    .layout{display:flex;flex-direction:column;height:auto;}
+    .map-wrap{order:-1;height:44vh;min-height:300px;flex:none;}
+    .map-hint,.map-legend{display:none;}
+    .cluster-label{display:none;}
+    .cluster-bubble{min-width:32px;height:32px;font-size:13px;}
+    .sidebar{overflow:visible;border-right:none;border-bottom:1px solid var(--line);padding:13px 13px 22px;}
+    .sidebar-head h2{font-size:14px;}
+    .only-confirmed{font-size:11px;padding:4px 8px;}
+    .cards{gap:9px;}
+    .section{padding:32px 14px 6px;}
+    .sec-head h2{font-size:19px;}
+    .sec-head p{font-size:12.5px;}
+    .phrase-grid,.shop-grid{grid-template-columns:1fr;}
+    .pick-grid{grid-template-columns:1fr;}
+    .scroll-hint{display:block;}
+    .cmp-table{min-width:600px;font-size:11.5px;}
+    .cmp-table th,.cmp-table td{padding:9px 10px;}
+    .cmp-table th.row-h{width:92px;font-size:11px;}
+    .cmp-table .big{font-size:13px;}
+    .route-table{min-width:640px;font-size:11.5px;}
+    .check-grid{grid-template-columns:1fr;}
+    .warn-grid{grid-template-columns:1fr;}
     .keyfacts{grid-template-columns:1fr 1fr;}
     .modal{padding:0;align-items:flex-end;}
     .modal-panel{max-height:92dvh;width:100%;border-radius:18px 18px 0 0;}
     .modal-head{padding:16px 16px 12px;}
     .modal-head h2{font-size:17px;}
     .modal-body{padding:14px 16px 24px;}
+    .calc-grid{grid-template-columns:1fr;}
+    .calc-form{grid-template-columns:1fr;padding:14px 16px 20px;gap:14px;}
+    .calc-result{order:-1;border-left:none;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;padding:14px 16px;}
+    .calc-result .stack,.calc-result .breaks,.calc-caveat{display:none;}
+    .calc-mini{display:block;}
+    .total-box .total-num{font-size:26px;}
+    .flash{padding:14px 15px 18px;}
+    .flash-cn{font-size:30px;}
+    .flash-addr{font-size:26px;}
+    .flash-station{font-size:19px;}
+    .flash-big .flash-cn{font-size:36px;}
+    .flash-big .flash-addr{font-size:30px;}
+    .flash-bigger .flash-cn{font-size:42px;}
+    .flash-bigger .flash-addr{font-size:34px;}
+    .page-foot{padding:18px 14px 34px;}
   }
   @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
     *{animation:none !important;transition:none !important;}
   }
 </style>
 </head>
 <body>
+<noscript>
+  <div style="padding:14px 16px;background:#fdece8;border-bottom:1px solid #f3c9bf;font-size:13px;color:#8f2c19;font-weight:700">
+    이 페이지는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜면 지도·필터·계산기가 모두 동작합니다.
+  </div>
+</noscript>
 
 <header class="app-header">
   <div class="brand">
     <div class="brand-mark" aria-hidden="true">🌶️</div>
     <div>
       <h1>마라자로 맵 <span class="en">MalaJaro Map</span></h1>
-      <p class="tagline">중국 9개 도시 마운자로(穆峰达) 처방 병원 · 인천·김포·부산·제주 출발 · 세관 가이드</p>
+      <p class="tagline">중국 9개 도시 마운자로(穆峰达) 처방 병원 · 인천·김포·부산·제주 출발 · 세관·회화·준비물까지</p>
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn-calc" id="calcBtn" type="button" aria-haspopup="dialog">
-      <span class="ico" aria-hidden="true">🧮</span>
-      <span class="lbl-full">원정 손익 계산기</span><span class="lbl-short">계산기</span>
-    </button>
+    <a class="btn-ghost" href="#phrases">💬 회화 카드</a>
+    <a class="btn-ghost" href="#shop">🎒 준비물</a>
     <button class="btn-guide" id="guideBtn" type="button" aria-haspopup="dialog">
       <span class="dot" aria-hidden="true"></span>
       <span class="lbl-full">세관·준비물 가이드</span><span class="lbl-short">가이드</span>
       <span class="arrow" aria-hidden="true">↗</span>
     </button>
+    <button class="btn-calc" id="calcBtn" type="button" aria-haspopup="dialog">
+      <span aria-hidden="true">🧮</span>
+      <span class="lbl-full">원정 손익 계산기</span><span class="lbl-short">계산기</span>
+    </button>
   </div>
 </header>
+
+<section class="hero">
+  <div class="hero-top">
+    <div class="hero-copy">
+      <span class="hero-kicker">2026-11-16 확인 기준 · 확인 수준 배지로 구분</span>
+      <h2>중국에서 마운자로, 어디서 어떻게 받을까</h2>
+      <p>병원 20곳 · 공항에서 병원까지 실제 노선 · 택시기사용 중국어 주소 · 진료실 회화 · 세관 한도까지 한 페이지에.</p>
+    </div>
+    <button class="share-btn" id="shareBtn" type="button">🔗 링크 공유</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi">
+      <span class="kpi-ico" aria-hidden="true">🗺️</span>
+      <div>
+        <div class="kpi-k">수록 범위</div>
+        <div class="kpi-v">9개 도시 · 20곳</div>
+        <div class="kpi-s">병원 18 · 플랜B 약국 2</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-ico" aria-hidden="true">💸</span>
+      <div>
+        <div class="kpi-k">최저 원정가</div>
+        <div class="kpi-v">약 37만 원</div>
+        <div class="kpi-s">인천→칭다오 · 2.5mg 3펜 기준</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-ico" aria-hidden="true">🛃</span>
+      <div>
+        <div class="kpi-k">세관 한도</div>
+        <div class="kpi-v">3펜 · 3개월</div>
+        <div class="kpi-s">기본 6병 · 초과 시 3개월분</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <span class="kpi-ico" aria-hidden="true">🧊</span>
+      <div>
+        <div class="kpi-k">반입 방식</div>
+        <div class="kpi-v">기내 휴대 필수</div>
+        <div class="kpi-s">위탁 금지 · 2~8℃ 보냉</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <nav class="city-tabs" id="cityTabs" role="tablist" aria-label="도시 선택">
   <span class="tabs-hint">확인 수준 <b>배지</b>로 구분 · 기준 2026-11-16</span>
@@ -615,10 +866,9 @@
   <aside class="sidebar" aria-label="병원 목록">
     <div class="sidebar-head">
       <h2 id="listTitle">전체 병원 <span class="sub">20곳</span></h2>
-      <label class="only-confirmed" title="전화로 확인이 끝난 곳만 표시">
-        <input type="checkbox" id="onlyConfirmed" /> 전화 확인된 곳만
-      </label>
     </div>
+
+    <div class="filters" id="filters" role="group" aria-label="조건 필터"></div>
 
     <div class="legend">
       <span class="legend-title">확인 수준 배지</span>
@@ -632,8 +882,8 @@
     <div class="cards" id="cards"></div>
 
     <div class="sidebar-foot">
-      <b>데이터 기준 2026-11-16.</b> 배지는 확인 수준을 뜻합니다. 병원·약국의 진찰료·재고·처방 한도는 방문 당일 달라질 수 있고, 항공권은 조회 시점에 따라 변동합니다.<br />
-      닝보 3곳은 <b>11/17 오전</b> 외국인 처방·재고 전화 확인 예정입니다. 새로 더한 6개 도시(베이징·광저우·선전·항저우·션양·다롄)는 국제진료부가 있다는 점만 확인된 단계입니다.
+      <b>데이터 기준 2026-11-16.</b> 배지는 확인 수준을 뜻합니다. 진찰료·재고·처방 한도는 방문 당일 달라질 수 있고, 항공권은 조회 시점에 따라 변동합니다.<br />
+      닝보 3곳은 <b>11/17 오전</b> 외국인 처방·재고 전화 확인 예정입니다. 베이징·광저우·선전·항저우·선양·다롄 10곳은 국제진료부가 있다는 점만 확인된 단계입니다.
     </div>
   </aside>
 
@@ -650,6 +900,276 @@
     <div class="map-hint">카드를 누르면 지도가 이동합니다 · 보라색 <b style="color:#c4b5fd">약</b> 핀은 플랜B 약국</div>
   </section>
 </main>
+
+<!-- ══════════ 3국 비교 ══════════ -->
+<section class="section" id="compare">
+  <div class="sec-head">
+    <span class="sec-kicker">Korea · China · Japan</span>
+    <h2>한국 vs 중국 vs 일본, 1개월 비용은 얼마 차이일까</h2>
+    <p>같은 마운자로(터제파티드)라도 나라마다 <b>처방 기준·포장 단위·가격</b>이 다릅니다. 2026년 11월 확인된 공식·공개 자료로 2.5mg부터 10mg까지 나란히 놓았습니다.</p>
+  </div>
+  <p class="scroll-hint"><span>←</span> 표를 좌우로 넘기면 나라별 가격이 보입니다</p>
+  <div class="cmp-scroll">
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th scope="col">구분</th>
+          <th scope="col">🇰🇷 한국</th>
+          <th scope="col" class="cn-col">🇨🇳 중국</th>
+          <th scope="col" class="jp-col">🇯🇵 일본 (스시자로)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" class="row-h">2.5mg<br /><span style="font-weight:600;color:#71767f;font-size:10.5px">1개월</span></th>
+          <td><span class="big">30만~35만 원</span><span class="sub">4펜 상자 (공급가 27.8만)</span></td>
+          <td><span class="big win">약 6.5만 원</span><span class="sub">324.12위안 · 1펜(4주)</span></td>
+          <td><span class="big">약 15만 원</span><span class="sub">중앙값 ¥17,600 · 4본</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">5mg<br /><span style="font-weight:600;color:#71767f;font-size:10.5px">1개월</span></th>
+          <td><span class="big">37만~42만 원</span><span class="sub">4펜 상자 (공급가 36.9만)</span></td>
+          <td><span class="big win">약 11만 원</span><span class="sub">551.00위안 · 1펜(4주)</span></td>
+          <td><span class="big">약 29만 원</span><span class="sub">중앙값 ¥34,000 · 4본</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">7.5mg<br /><span style="font-weight:600;color:#71767f;font-size:10.5px">1개월</span></th>
+          <td><span class="big">52만~60만 원</span><span class="sub">4펜 상자 (공급가 52.1만)</span></td>
+          <td><span class="big win">약 15만 원</span><span class="sub">751.55위안 · 1펜(4주)</span></td>
+          <td><span class="big">약 36만 원</span><span class="sub">중앙값 ¥42,400 · 4본</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">10mg<br /><span style="font-weight:600;color:#71767f;font-size:10.5px">1개월</span></th>
+          <td><span class="big">52만~60만 원</span><span class="sub">4펜 상자 (공급가 52.1만)</span></td>
+          <td><span class="big win">약 18.7만 원</span><span class="sub">936.70위안 · 1펜(4주)</span></td>
+          <td><span class="big">약 43만 원</span><span class="sub">중앙값 ¥51,200 · 4본</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">12.5 · 15mg</th>
+          <td>있음 (2026-06 출시)</td>
+          <td><b>없음 (미출시)</b><br /><span class="sub">최대 10mg까지</span></td>
+          <td>있음<br /><span class="sub">¥57,800 / ¥76,700 중앙값</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">처방 기준</th>
+          <td>BMI <b>30 이상</b><br /><span class="sub">27~30 + 동반질환 1개 이상</span></td>
+          <td>BMI <b>28 이상</b><br /><span class="sub">24 이상 + 동반질환 1개 이상</span></td>
+          <td>BMI 25 이상(비만증)<br /><span class="sub">다이어트 목적은 적응증 밖 사용</span></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">포장 단위</th>
+          <td>1회용 펜 4개 = 4주</td>
+          <td>1펜 = 4회분(4주) · 퀵펜</td>
+          <td>1본 = 1주 · 4본 = 4주</td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">장점</th>
+          <td><ul><li>익숙한 진료·약국, 재처방 쉬움</li><li>12.5·15mg까지 전 단계</li><li>한국어 진료</li></ul></td>
+          <td><ul><li><b>가격이 가장 저렴</b> (한국의 1/4~1/5)</li><li>비행 1~2시간 · 당일치기 가능</li><li>정식 처방전·영수증(发票) 발급</li><li>비만 적응증 승인 국가</li></ul></td>
+          <td><ul><li>가까운 거리·짧은 비행</li><li>10mg 이상 고용량 유통</li><li>일본어 가능 클리닉 다수</li><li>4본 단위로 소분 구매</li></ul></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">단점</th>
+          <td><ul><li>가격이 가장 비쌈</li><li>비급여(전액 자비)</li><li>비대면 처방 불가</li></ul></td>
+          <td><ul><li>12.5·15mg 미출시</li><li>외국인 응대 병원이 한정</li><li>언어·결제(알리페이) 준비 필요</li><li>재고·처방 한도가 병원마다 다름</li></ul></td>
+          <td><ul><li>다이어트 목적은 <b>미승인(자유진료)</b></li><li>클리닉별 가격 편차 큼</li><li>일본어 가능해야 하는 곳 있음</li></ul></td>
+        </tr>
+        <tr>
+          <th scope="row" class="row-h">세관 반입</th>
+          <td>—</td>
+          <td><b>3펜(3개월분)</b>까지 · 처방전+영수증</td>
+          <td><b>3펜(3개월분)</b>까지 · 처방전+영수증</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cmp-notes">
+    <b>환율 가정</b> 1위안 ≈ 200원, 100엔 ≈ 840원 (2026-11-13 연합뉴스 환산 기준). <b>한국</b>은 공급가(4펜)와 실제 판매가 범위, <b>중국</b>은 2026-01~ 국가의보 협상가 1펜 기준, <b>일본</b>은 2026-10-17~25 각 클리닉 공식 페이지 30곳 조사 <b>중앙값</b>입니다. 일본은 2.5mg 4본을 ¥8,000대에 파는 곳도 있어 편차가 큽니다. 모든 가격은 참고값이며, 실제 결제액은 진찰료·검사비·환율에 따라 달라집니다.
+  </p>
+  <div class="pick-grid">
+    <div class="pick">
+      <div class="pk">가장 저렴하게</div>
+      <h3>인천 → 칭다오</h3>
+      <p>왕복 <b>15.2만 원</b> + 2.5mg 3펜 <b>19.4만 원</b> + 진찰 100위안 ≒ <b>37만 원</b>. 1시간 30분 직항에 8호선으로 시내까지 40분.</p>
+    </div>
+    <div class="pick">
+      <div class="pk">가장 확인된 곳</div>
+      <h3>제주 → 상하이 런지병원</h3>
+      <p>전화 확인된 유일한 병원. <b>영어 진료·5mg 재고 보유</b>, 진찰 508위안. 춘추항공 당일치기 왕복 20.7만.</p>
+    </div>
+    <div class="pick">
+      <div class="pk">재처방이 편한 쪽</div>
+      <h3>일본 클리닉 (스시자로)</h3>
+      <p>한국의 약 <b>1/2 가격</b>에 12.5·15mg까지. 다만 다이어트 목적은 적응증 밖(자유진료)이라 클리닉 판단이 필요합니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 공항 → 병원 ══════════ -->
+<section class="section" id="routes">
+  <div class="sec-head">
+    <span class="sec-kicker">Airport → Hospital</span>
+    <h2>공항에서 병원까지, 실제 지하철 노선</h2>
+    <p>택시만 알면 비싸고, 노선을 알면 <b>2~7위안</b>으로 갑니다. 병원 공식 안내·현지 지도로 확인한 노선만 실었고, 확인되지 않은 구간은 택시 기준으로 남겼습니다.</p>
+  </div>
+  <p class="scroll-hint"><span>←</span> 표를 좌우로 넘기면 노선과 근거가 함께 보입니다</p>
+  <div class="route-scroll">
+    <table class="route-table">
+      <thead>
+        <tr><th scope="col">도시</th><th scope="col">공항 → 병원</th><th scope="col">시간</th><th scope="col">근거</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="city">상하이<small>푸동공항</small></td>
+          <td class="path">2호선·자기부상 → <b>4호선 塘桥역</b>(2출구, 456m) 또는 <b>6호선 上海儿童医学中心역</b>(3출구, 497m) → 런지병원 동원</td>
+          <td class="t">약 50분</td>
+          <td class="src">병원 공식 안내</td>
+        </tr>
+        <tr>
+          <td class="city">베이징<small>서우두 T3</small></td>
+          <td class="path"><b>수도공항선</b> T3 → 东直门 → <b>2호선</b> → 建国门 → <b>1호선</b> → <b>东单역</b> A·B출구 → 협화병원</td>
+          <td class="t">약 60~70분</td>
+          <td class="src">병원·지도 안내</td>
+        </tr>
+        <tr>
+          <td class="city">베이징<small>다싱공항</small></td>
+          <td class="path"><b>다싱공항선</b> → 草桥 → <b>10호선</b> → 宋家庄 → <b>5호선</b> → 东单역 (2+5+6정거장)</td>
+          <td class="t">약 70분</td>
+          <td class="src">공항 공식 안내</td>
+        </tr>
+        <tr>
+          <td class="city">칭다오<small>자오둥공항</small></td>
+          <td class="path"><b>8호선</b> 胶东机场 → <b>五四广场</b>(급행 40분) → <b>2호선</b> → 燕儿岛路(青岛中央法务区)역 C출구 → 도보 10분 → 시립병원 동원</td>
+          <td class="t">약 55~65분</td>
+          <td class="src">병원·공항 안내</td>
+        </tr>
+        <tr>
+          <td class="city">닝보<small>리서공항</small></td>
+          <td class="path"><b>2호선</b> 栎社机场 → <b>城隍庙역</b> A출구 180m → 닝보대 부속 제1병원(월호원구)</td>
+          <td class="t">약 24분</td>
+          <td class="src">역·지도 안내</td>
+        </tr>
+        <tr>
+          <td class="city">광저우<small>바이윈공항</small></td>
+          <td class="path"><b>3호선</b>(북연장) 机场北/机场南 → 体育西路 → <b>1호선</b> → <b>烈士陵园역</b> C출구 200m → 중산대 제1병원·광둥성 인민병원</td>
+          <td class="t">약 50분</td>
+          <td class="src">병원 공식 안내</td>
+        </tr>
+        <tr>
+          <td class="city">항저우<small>샤오산공항</small></td>
+          <td class="path">공항역 <b>1·7·19호선</b>(19호선 시내 30분) → 시내 이동 후 <b>5호선 万安桥역</b> D출구 200m → 절강대 제1병원</td>
+          <td class="t">약 50~60분</td>
+          <td class="src">역·병원 안내</td>
+        </tr>
+        <tr>
+          <td class="city">선전<small>바오안공항</small></td>
+          <td class="path"><b>9호선 深圳湾公园역</b> D1출구 120m → 홍콩대학 선전병원 (공항에서는 11호선 환승, 현지 앱 확인)</td>
+          <td class="t">약 50분</td>
+          <td class="src">병원 공식 안내</td>
+        </tr>
+        <tr>
+          <td class="city">다롄<small>저우수이즈공항</small></td>
+          <td class="path"><b>2호선</b> 机场역 → <b>人民广场역</b> 하차 바로 → 다롄의대 부속 제1병원</td>
+          <td class="t">약 25분</td>
+          <td class="src">병원 공식 안내</td>
+        </tr>
+        <tr>
+          <td class="city">선양<small>타오시안공항</small></td>
+          <td class="path"><b>1호선 太原街역</b> C출구 방향 도보 약 10분 → 중국의대 부속 제1병원 (공항은 2호선, 환승역은 현지 앱 확인)</td>
+          <td class="t">약 55분</td>
+          <td class="src">역·지도 안내</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cmp-notes"><b>주의</b> 노선·환승은 2026-11-16 확인 기준입니다. 당일 첫차·막차와 출입구 위치는 <b>高德(Amap)·百度地圖</b>로 다시 확인하세요. 공항에서 병원까지 택시는 도시별 30~80분(3~110위안)입니다.</p>
+</section>
+
+<!-- ══════════ 진료실 회화 ══════════ -->
+<section class="section" id="phrases">
+  <div class="sec-head">
+    <span class="sec-kicker">Speak &amp; Show</span>
+    <h2>진료실·약국에서 바로 쓰는 중국어 6문장</h2>
+    <p>중국어를 몰라도 됩니다. 문장을 눌러 <b>크게 보여주고</b>, 복사해서 번역기에 붙여도 됩니다. 병원·약국에서 필요한 말만 골랐습니다.</p>
+  </div>
+  <div class="phrase-grid" id="phraseGrid"></div>
+  <p class="cmp-notes"><b>발음 표기</b>는 한국어로 소리 나는 대로 적은 참고값입니다. 실제 발음은 번역 앱 음성(TTS)을 함께 쓰는 편이 정확합니다.</p>
+</section>
+
+<!-- ══════════ 출국 전 체크리스트 ══════════ -->
+<section class="section" id="checklist">
+  <div class="sec-head">
+    <span class="sec-kicker">Before You Fly</span>
+    <h2>출국 전 5분 체크리스트</h2>
+    <p>체크한 상태는 이 브라우저에 저장됩니다. 비행기 안에서, 공항에서 다시 열어 확인하세요.</p>
+  </div>
+  <div class="check-wrap">
+    <div class="check-top">
+      <div class="check-count" id="checkCount"><span>0</span> / 10 완료</div>
+      <button class="check-reset" id="checkReset" type="button">전체 해제</button>
+    </div>
+    <div class="bar"><i id="checkBar"></i></div>
+    <div class="check-grid" id="checkGrid"></div>
+  </div>
+</section>
+
+<!-- ══════════ 세관 ══════════ -->
+<section class="section" id="customs">
+  <div class="sec-head">
+    <span class="sec-kicker">Customs · Cabin Rule</span>
+    <h2>이 세 가지만은 꼭 지키세요</h2>
+    <p>2026-11-12 시행 식약처·관세청 기준입니다. 약값을 아끼려다 <b>약을 버리거나 반입이 거절</b>되는 경우가 가장 흔합니다.</p>
+  </div>
+  <div class="warn-band">
+    <div class="warn-head"><span class="ico" aria-hidden="true">⚠️</span> 위탁 수하물에 절대 넣지 마세요</div>
+    <div class="warn-grid">
+      <div class="warn-card">
+        <div class="k">1 · 위탁 금지</div>
+        <div class="v">화물칸은 영하</div>
+        <div class="s">마운자로는 2~8℃ 냉장 의약품입니다. 화물칸 냉동으로 <b>얼면 폐기</b>해야 하고, 한 번 얼었던 펜은 사용할 수 없습니다. 반드시 <b>기내 휴대 가방</b>에 넣으세요.</div>
+      </div>
+      <div class="warn-card">
+        <div class="k">2 · 한도</div>
+        <div class="v">3펜 · 3개월분</div>
+        <div class="s">자가치료용 의약품은 기본 6병, 초과 시 용법상 3개월분까지. 마운자로는 <b>1펜이 4주분</b>이라 3펜이 상한입니다.</div>
+      </div>
+      <div class="warn-card">
+        <div class="k">3 · 서류</div>
+        <div class="v">처방전 + 영수증</div>
+        <div class="s">현지 병원 <b>정식 처방전</b>과 <b>인쇄 영수증(发票)</b>, 그리고 한국 기존 처방·투여 이력을 함께 지참하세요. 캡처 이미지는 인정받기 어렵습니다.</div>
+      </div>
+    </div>
+    <div class="warn-foot">
+      <button class="link-btn" id="guideBtn2" type="button">세관·준비물 가이드 전체 보기 ↗</button>
+      <span>보냉 파우치와 보냉제는 액체류로 볼 수 있어, 보안검색 때 처방전을 함께 보여 주세요.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 준비물 (쿠팡 파트너스) ══════════ -->
+<section class="section" id="shop">
+  <div class="sec-head">
+    <span class="sec-kicker">Before Departure · Gear</span>
+    <h2>출국 전 필수 준비물 5가지</h2>
+    <p>중국 병원·약국에서 <b>주사침과 보냉 용기를 주지 않는 경우</b>가 많습니다. 한국에서 미리 챙기면 현지에서 헤매지 않습니다.</p>
+  </div>
+  <div class="shop-grid" id="shopGrid"></div>
+  <div class="disclosure">
+    <b>파트너스 고지</b> — 이 페이지의 준비물 추천 링크는 추후 쿠팡 파트너스 활동의 일환으로 일정액의 수수료를 제공받을 수 있습니다. 가격·재고는 쿠팡 검색 결과 기준이며, 구매 결정과 비용은 전적으로 사용자에게 있습니다. 링크는 현재 <b>쿠팡 정식 검색 URL</b>로 연결됩니다.
+  </div>
+</section>
+
+<footer class="page-foot">
+  <b>마라자로 맵</b> · 2026-11-16 기준 · 제작 MalaJaro Map<br />
+  참고용 정보입니다. 의료·법적 판단의 근거로 쓰지 마시고, 출국 전 식약처·관세청 최신 안내와 병원 안내를 다시 확인하세요. 병원·약국의 진찰료·재고·처방 한도는 방문 당일 달라질 수 있습니다.<br />
+  문의 · 식약처 의약품관리과 043-719-2651 / 관세청 관세국경감시과 042-481-7820
+  <div class="row">
+    <button type="button" id="footGuide">세관·준비물 가이드</button>
+    <button type="button" id="footCalc">원정 손익 계산기</button>
+    <a href="https://github.com/spaltino/malajaro-map" target="_blank" rel="noopener">GitHub 저장소</a>
+    <a href="#top">맨 위로</a>
+  </div>
+</footer>
 
 <!-- 원정 손익 계산기 -->
 <div class="modal" id="calcModal" hidden>
@@ -683,7 +1203,7 @@
         </div>
 
         <div class="field full">
-          <div class="flabel">약가 <em id="drugDoseLabel">5mg · 4주분 퀵펜 1개</em></div>
+          <div class="flabel">용량 <em id="drugDoseLabel">5mg · 4주분 퀵펜 1개</em></div>
           <div class="seg" id="doseSeg" role="group" aria-label="용량">
             <button type="button" data-dose="2.5" aria-pressed="false">2.5mg</button>
             <button type="button" data-dose="5" aria-pressed="true">5mg</button>
@@ -692,47 +1212,40 @@
           </div>
           <div class="amount" style="margin-top:8px"><input type="text" inputmode="decimal" id="cDrug" value="551.00" aria-label="펜당 약가 위안"><span class="unit">위안</span></div>
           <div class="quick">
-            <button type="button" data-drug="324.12">2.5mg 324.12</button>
-            <button type="button" data-drug="551.00">5mg 551.00</button>
-            <button type="button" data-drug="751.55">7.5mg 751.55</button>
-            <button type="button" data-drug="936.70">10mg 936.70</button>
-            <button type="button" data-drug="750">약국 15만 원대</button>
+            <button type="button" data-drug="324.12">2.5mg 324</button>
+            <button type="button" data-drug="551.00">5mg 551</button>
+            <button type="button" data-drug="751.55">7.5mg 752</button>
+            <button type="button" data-drug="936.70">10mg 937</button>
           </div>
-          <p class="hint">2026-01~ 중국 국가의보 협상가(병원 기준) · 12.5mg·15mg는 중국 미출시 · 플랜B 약국은 펜당 15만 원대(≈750위안) 후기</p>
         </div>
 
-        <div class="field full">
-          <div class="flabel">처방 펜 수 <em>1펜 = 4주분(4회 투여)</em></div>
-          <div class="seg" role="group" aria-label="처방 펜 수">
+        <div class="field">
+          <div class="flabel">펜 수 <em>세관 한도 3펜</em></div>
+          <div class="seg" role="group" aria-label="펜 수">
             <button type="button" data-pens="1" aria-pressed="false">1펜</button>
             <button type="button" data-pens="2" aria-pressed="false">2펜</button>
             <button type="button" data-pens="3" aria-pressed="true">3펜</button>
           </div>
-          <p class="hint">3펜 = <b>12회분 · 3개월</b> · 세관 반입 허용 상한</p>
         </div>
 
         <div class="field">
-          <div class="flabel">진찰료 <em>병원 유형</em></div>
+          <div class="flabel">진찰료 <em>항공·약값 제외</em></div>
           <div class="amount"><input type="text" inputmode="numeric" id="cExam" value="508" aria-label="진찰료 위안"><span class="unit">위안</span></div>
           <div class="quick">
-            <button type="button" data-exam="508">런지 국제부 508</button>
-            <button type="button" data-exam="100">칭다오 국제부 100</button>
-            <button type="button" data-exam="18">일반외래 18</button>
-            <button type="button" data-exam="25">일반외래 25</button>
+            <button type="button" data-exam="25">일반 25</button>
+            <button type="button" data-exam="100">칭다오 100</button>
+            <button type="button" data-exam="508">런지 508</button>
           </div>
-          <p class="hint">런지 동원 국제의료부 508위안 · 칭다오 시립병원 동원 국제부 100위안 · 본원 내분비과 18위안(후기)</p>
         </div>
 
         <div class="field">
-          <div class="flabel">환율 <em>추정치</em></div>
+          <div class="flabel">환율 <em>1위안 = ? 원</em></div>
           <div class="amount"><input type="text" inputmode="numeric" id="cFx" value="200" aria-label="환율"><span class="unit">원 / 1위안</span></div>
-          <p class="hint">2026-11-16 기준 약 199.9원 · 반올림해 적용</p>
         </div>
 
-        <div class="field full">
-          <div class="flabel">한국 기준가 <em>같은 용량 1개월 · 약값+진료비 평균</em></div>
+        <div class="field">
+          <div class="flabel">한국 월 기준가 <em>1개월 4펜</em></div>
           <div class="amount"><input type="text" inputmode="numeric" id="cKr" value="410,000" aria-label="한국 월 기준가"><span class="unit">원 / 월</span></div>
-          <p class="hint">2.5mg 32만 · 5mg 41만 · 7.5mg 55만 · 10mg 56만 원(2026-11 국내 평균) · 용량을 고르면 자동으로 바뀝니다</p>
         </div>
 
         <button class="calc-reset" type="button" id="calcReset">기본값으로 되돌리기</button>
@@ -740,34 +1253,28 @@
 
       <div class="calc-result">
         <div class="total-box">
-          <div class="rl">총 예상 지출</div>
+          <div class="rl">예상 총지출</div>
           <div class="total-num" id="cTotal">0원</div>
           <div class="total-sub" id="cPer">3개월분 · 3펜 기준</div>
           <div class="total-sub" id="cPerMonth" style="margin-top:2px">월 환산 0원</div>
           <div class="calc-mini" id="cMini">항공 0원 · 진찰 0원 · 약값 0원</div>
         </div>
-
         <div class="stack" aria-hidden="true">
           <i id="barAir" style="background:#1f5fd0;width:33%"></i>
           <i id="barExam" style="background:#b16a0c;width:16%"></i>
           <i id="barDrug" style="background:#d9482f;width:51%"></i>
         </div>
-
         <div class="breaks">
           <div class="brow"><span class="dot" style="background:#1f5fd0"></span><span class="bk">항공권<small>왕복</small></span><span class="bv" id="cAirOut">0원</span></div>
           <div class="brow"><span class="dot" style="background:#b16a0c"></span><span class="bk">진찰료<small id="cExamKrw">0원 환산</small></span><span class="bv" id="cExamOut">0원</span></div>
           <div class="brow"><span class="dot" style="background:#d9482f"></span><span class="bk">약값<small id="cDrugKrw">3펜 환산</small></span><span class="bv" id="cDrugOut">0원</span></div>
         </div>
-
         <div class="save-box" id="cSaveBox">
           <div class="sl">한국 대비 예상 절약</div>
           <div class="sv" id="cSave">0원</div>
           <div class="sc" id="cSaveSub">한국 기준 0원과 비교</div>
         </div>
-
-        <p class="calc-caveat">
-          <b>약가·진찰료·환율은 추정치</b>입니다. 항공권은 2026-11 조회 최저가대(왕복 직항) 기준이며, 병원 재고·처방 한도·세관 판단에 따라 실제 금액은 달라집니다. 의료비는 여행자보험 실손 대상이 아닐 수 있습니다.
-        </p>
+        <p class="calc-caveat"><b>참고</b> 항공권은 2026-11 조회 최저가대, 약가는 중국 국가의보 협상가(4주분 펜 1개), 한국 기준가는 비급여 판매가 중간값입니다. 진찰료·검사비·환율·수수료에 따라 실제 금액은 달라집니다. 카드 수수료·해외결제 수수료는 포함하지 않았습니다.</p>
       </div>
     </div>
   </div>
@@ -798,13 +1305,14 @@
         <ul>
           <li>정상 의료체계에서 <b>처방·구매</b>한 자가치료용 의약품은 <b>최대 6병</b>까지 휴대 반입이 허용됩니다.</li>
           <li>6병을 초과하는 경우 <b>용법상 최대 3개월분</b>까지 인정 — 마운자로 기준 <span class="hl">최대 3펜(12회분)</span>입니다.</li>
+          <li>반입 시 <b>처방전·영수증</b>을 요구받을 수 있으므로 기내 가방에 함께 넣어 두세요.</li>
         </ul>
       </div>
 
       <div class="guide-block">
         <h3><span class="n">2</span>필수 지참 서류</h3>
         <ul>
-          <li><b>여권</b></li>
+          <li><b>여권</b> (무비자 30일)</li>
           <li><b>한국 기존 처방전 / 투여 이력</b> (약봉투·진료확인서 포함)</li>
           <li>현지 병원 <b>정식 처방전 + 인쇄 영수증(发票)</b> — 화면 캡처가 아닌 인쇄본</li>
         </ul>
@@ -824,7 +1332,7 @@
           <li><b>2~8°C 냉장</b>·빛을 막아 보관하고, <b>얼리지 마세요</b>. 얼었던 제품은 사용하지 않습니다.</li>
           <li>냉장이 어려우면 빛을 막은 상태로 <b>30°C 이하 실온에서 21일 안</b>에 사용합니다.</li>
           <li>펜을 감싼 비닐은 빛을 막지 못하므로 <b>사용 직전까지 바깥 상자</b>에 넣어 두세요.</li>
-          <li>이동할 때는 <b>보냉제·보냉 가방</b>을 쓰고, 숙소에서는 다시 냉장 보관합니다.</li>
+          <li><b>위탁 수하물 금지.</b> 화물칸은 영하로 내려가 얼 수 있습니다. 반드시 기내 휴대하고, 보냉 파우치·아이스팩을 함께 쓰세요.</li>
           <li>기내에는 의약품이 <b>액체류 제한 예외</b>로 객실 반입되지만 공항·항공사마다 기준이 다릅니다. <b>처방전·진단서</b>를 함께 들고 보안검색 때 보여 주세요.</li>
           <li>승무원이 약을 맡아 냉장해 주지 않으니 <b>보냉 용기는 직접</b> 준비하고, 보냉제는 액체로 취급될 수 있어 <b>보냉용임을 알 수 있게</b> 표기하거나 영문 증명서를 지참하세요.</li>
         </ul>
@@ -835,10 +1343,10 @@
         <table class="price-table">
           <thead><tr><th>용량</th><th>중국 4주분(펜 1개)</th><th>원화 환산</th><th>한국 1개월 참고</th></tr></thead>
           <tbody>
-            <tr><td>2.5mg</td><td class="cn">324.12위안</td><td>약 6.5만 원</td><td>약 32만 원</td></tr>
-            <tr><td>5mg</td><td class="cn">551.00위안</td><td>약 11만 원</td><td>약 41만 원</td></tr>
-            <tr><td>7.5mg</td><td class="cn">751.55위안</td><td>약 15만 원</td><td>약 55만 원</td></tr>
-            <tr><td>10mg</td><td class="cn">936.70위안</td><td>약 18.7만 원</td><td>약 56만 원</td></tr>
+            <tr><td>2.5mg</td><td class="cn">324.12위안</td><td>약 6.5만 원</td><td>약 30~35만 원</td></tr>
+            <tr><td>5mg</td><td class="cn">551.00위안</td><td>약 11만 원</td><td>약 37~42만 원</td></tr>
+            <tr><td>7.5mg</td><td class="cn">751.55위안</td><td>약 15만 원</td><td>약 52~60만 원</td></tr>
+            <tr><td>10mg</td><td class="cn">936.70위안</td><td>약 18.7만 원</td><td>약 52~60만 원</td></tr>
           </tbody>
         </table>
         <ul>
@@ -870,7 +1378,7 @@
           <li>런지병원 동원 국제의료부는 <b>영어 진료</b> 가능, 이메일 예약 <b>renji_clinic@renji.com</b></li>
           <li>칭다오 시립병원은 <b>본관이 아니라 옆 건물(东院) 2층 국제부</b>로 바로 가세요. 본관 내과는 당일 접수가 마감되는 경우가 많습니다.</li>
           <li>원내 약국 품절이면 <b>도보 7~8분 거리 약국</b>으로 가야 하니 귀국편까지 시간을 넉넉히 두세요.</li>
-          <li>도시별 공항에서 병원까지는 <b>택시 기준 30~80분</b>입니다(2026-11 지도 조회). 지하철 노선은 현지 앱(Amap·百度地圖)으로 다시 확인하세요.</li>
+          <li>도시별 공항에서 병원까지는 페이지의 <b>공항 → 병원</b> 표에 있는 지하철 노선을 쓰면 2~7위안입니다. 첫차·막차는 高德·百度地圖로 다시 확인하세요.</li>
           <li>수령 즉시 <b>처방전·영수증 인쇄본</b>을 받아 두기 (세관 제시용)</li>
         </ul>
       </div>
@@ -901,6 +1409,17 @@
         </div>
       </div>
 
+      <div class="guide-block">
+        <h3><span class="n">9</span>자주 하는 실수 5가지</h3>
+        <ul>
+          <li><b>약을 위탁 수하물에 넣기</b> — 화물칸에서 얼어 폐기. 기내 휴대가 원칙입니다.</li>
+          <li><b>영수증을 캡처만 하기</b> — 세관·약국 모두 인쇄본을 요구합니다.</li>
+          <li><b>BMI 기준 미확인</b> — 중국은 BMI 28(24+동반질환)이라 국내 기준(BMI 30)보다 문턱이 낮지만, 병원마다 확인 방식이 다릅니다.</li>
+          <li><b>고용량(12.5·15mg) 기대</b> — 중국에는 없습니다. 국내에서 6단계인 분은 용량을 낮춰야 합니다.</li>
+          <li><b>처방전 없이 약국 구매</b> — 선전·다롄에서 실패 후기 다수. 병원 진료가 기본입니다.</li>
+        </ul>
+      </div>
+
       <p class="guide-foot">
         <b>참고용 정보입니다.</b> 의료·법적 판단의 근거로 쓰지 마시고, 출국 전 식약처·관세청 최신 안내와 병원 안내를 다시 확인하세요. 모든 수치는 2026-11-16 확인 기준입니다.<br />
         문의 · 식약처 의약품관리과 043-719-2651 / 관세청 관세국경감시과 042-481-7820
@@ -909,84 +1428,103 @@
   </div>
 </div>
 
+<!-- 플래시카드 (택시기사용 주소 / 회화 큰 글씨) -->
+<div class="flash" id="flash" hidden role="dialog" aria-modal="true" aria-labelledby="flashKicker">
+  <div class="flash-top">
+    <span class="flash-kicker" id="flashKicker">기사님께 보여주기</span>
+    <button class="flash-close" type="button" id="flashClose" aria-label="닫기">✕</button>
+  </div>
+  <div class="flash-body" id="flashBody"></div>
+  <div class="flash-acts" id="flashActs"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function () {
   "use strict";
 
-  /* ------------------------------------------------------------------
-     데이터 — 브리프에 정리된 좌표·정보만 사용
-     status: confirmed(전화 확인됨) | pending(확인 예정) | review(후기 참고)
+  /* ==================================================================
+     수익화 설정 — 여기만 바꾸면 됩니다.
+     url 이 비어 있으면 아래 searchBase + 검색어로 연결됩니다.
+     대표님의 실제 쿠팡 파트너스 단축 URL(link.coupang.com/...)이
+     생기면 해당 항목의 url 에 그대로 넣어 주세요.
+  ================================================================== */
+  var COUPANG_PARTNERS_LINKS = {
+    searchBase: "https://www.coupang.com/np/search?q=",
+    coolerPouch: { q: "인슐린 보냉 파우치 아이스팩", url: "" },
+    needles32g: { q: "인슐린 펜니들 32G 4mm", url: "" },
+    swabBin:    { q: "알코올 스왑 휴대용 주사침 폐기통", url: "" },
+    chinaEsim:  { q: "중국 eSIM 데이터 무제한 VPN", url: "" },
+    adapterPower: { q: "해외 멀티어댑터 중국 고속 보조배터리", url: "" }
+  };
+  function partnerUrl(key) {
+    var item = COUPANG_PARTNERS_LINKS[key];
+    if (!item) return COUPANG_PARTNERS_LINKS.searchBase;
+    return item.url ? item.url : COUPANG_PARTNERS_LINKS.searchBase + encodeURIComponent(item.q);
+  }
+
+  /* ------------------------------------------------------------------ 데이터
+     status: confirmed(전화 확인됨) | pending(확인 예정) | review(후기 참고) | official(공식 정보·미확인)
+     tags  : confirmed | korean | daytrip | planb
+     taxi  : 기사님께 보여줄 중국어 이름·주소·가까운 역
   ------------------------------------------------------------------ */
   var HOSPITALS = [
     /* ───────────── 상하이 ───────────── */
     {
-      id: "renji",
-      no: 1,
-      city: "shanghai",
-      cityLabel: "상하이 · 浦东",
-      name: "런지병원 동원 국제의료부",
-      cn: "仁济医院东院 国际医疗部",
-      status: "confirmed",
-      statusLabel: "전화 확인됨",
+      id: "renji", no: 1, city: "shanghai", cityLabel: "상하이 · 浦东",
+      name: "런지병원 동원 국제의료부", cn: "仁济医院东院 国际医疗部",
+      status: "confirmed", statusLabel: "전화 확인됨",
       chips: ["3급 갑등 공립", "국제의료부", "영어 진료"],
+      tags: ["confirmed", "daytrip"],
       facts: [
         ["진찰료", "<span class='price'>508위안</span> · 영어 진료 가능"],
         ["예약", "이메일 renji_clinic@renji.com"],
         ["마운자로 5mg", "<b>원내 재고 보유</b> · 약가 551위안 · 처방 한도는 당일 판단"],
-        ["공항 동선", "푸동공항 → 2호선·자기부상 + 4·6호선 약 <b>50분</b> (탕차오역·아동의학센터역 도보 5~8분)"],
+        ["공항 동선", "푸동공항 → 2호선·자기부상 + <b>4호선 塘桥</b>(2출구 456m) / <b>6호선 儿童医学中心</b>(3출구 497m) 약 <b>50분</b>"],
         ["항공", "제주 직항 약 20.7만 · 인천 25.2만~ · 김포(홍차오) 26.7만~"],
         ["세관 서류", "정식 처방전 + 인쇄 영수증(发票) 발급 가능"]
       ],
       note: "1~3펜 처방 한도는 당일 의사 판단 — 3펜 가능 여부 사전 확인 중",
-      coord: [31.2096, 121.5290]
+      coord: [31.2096, 121.5290],
+      taxi: { addr: "上海市浦东新区浦建路160号", station: "地铁4号线 塘桥站 2号出口（步行约450米）" }
     },
     {
-      id: "dongfang",
-      no: 2,
-      city: "shanghai",
-      cityLabel: "상하이 · 浦东",
-      name: "동방병원 본원",
-      cn: "东方医院 本部",
-      status: "pending",
-      statusLabel: "확인 예정 (백업)",
+      id: "dongfang", no: 2, city: "shanghai", cityLabel: "상하이 · 浦东",
+      name: "동방병원 본원", cn: "东方医院 本部",
+      status: "pending", statusLabel: "확인 예정 (백업)",
       chips: ["3급 갑등 공립", "일반외래"],
+      tags: ["daytrip"],
       facts: [
         ["진찰료", "일반외래 <b>25위안</b> 수준"],
         ["확인 필요", "외국인 접수 · 마운자로 재고 별도 확인"],
-        ["공항 동선", "푸동공항 → 2호선 직통 약 <b>55분</b>, 푸동난루(구 둥창루)역 도보 5분"]
+        ["공항 동선", "푸동공항 → 2호선 직통 <b>东昌路역</b> 1출구 도보 7~8분, 약 <b>55분</b>"]
       ],
       note: "런지병원 <strong>백업 후보</strong> · 전화 확인 전 정보",
-      coord: [31.2397, 121.5117]
+      coord: [31.2397, 121.5117],
+      taxi: { addr: "上海市浦东新区即墨路150号", station: "地铁2号线 东昌路站 1号出口（步行约700米）" }
     },
     {
-      id: "gongli",
-      no: 3,
-      city: "shanghai",
-      cityLabel: "상하이 · 浦东",
-      name: "공리병원",
-      cn: "公利医院",
-      status: "pending",
-      statusLabel: "확인 예정 (백업)",
+      id: "gongli", no: 3, city: "shanghai", cityLabel: "상하이 · 浦东",
+      name: "공리병원", cn: "公利医院",
+      status: "pending", statusLabel: "확인 예정 (백업)",
       chips: ["3급 을등 공립", "일반외래"],
+      tags: ["daytrip"],
       facts: [
         ["진찰료", "일반외래 <b>25위안</b> 수준"],
-        ["공항 동선", "6호선 위안선체육중심역 <b>도보 3분</b>"]
+        ["공항 동선", "6호선 <b>源深体育中心역</b> 도보 3분 · 푸동공항에서 약 60분"]
       ],
       note: "런지병원 <strong>백업 후보</strong> · 외국인 접수·재고 미확인",
-      coord: [31.2406, 121.5396]
+      coord: [31.2406, 121.5396],
+      taxi: { addr: "上海市浦东新区苗圃路219号", station: "地铁6号线 源深体育中心站（步行约300米）" }
     },
     {
-      id: "jddp",
-      no: "약",
-      kind: "pharmacy",
-      city: "shanghai",
-      cityLabel: "상하이 · 플랜B 약국",
-      name: "징동대약방 상하이점",
-      cn: "京东大药房 上海枫林路店",
-      status: "review",
-      statusLabel: "후기 참고 (플랜B)",
+      id: "jddp", no: "약", kind: "pharmacy", city: "shanghai", cityLabel: "상하이 · 플랜B 약국",
+      name: "징동대약방 상하이점", cn: "京东大药房 上海枫林路店",
+      status: "review", statusLabel: "후기 참고 (플랜B)",
       chips: ["플랜B 약국", "징둥헬스 직영", "이중채널(双通道)"],
+      tags: ["planb"],
       facts: [
         ["약가", "펜당 약 <span class='price'>15만 원</span>대 (2026-11 실시간 한국인 후기)"],
         ["위치", "쉬후이구 펑린루 269弄"],
@@ -994,19 +1532,15 @@
         ["주의", "지점별 재고·병원 처방전/원격처방 정책 상이"]
       ],
       note: "병원에서 <strong>1펜만 받았을 때</strong> 추가 구매하는 플랜B 루트 · 후기 기준",
-      coord: [31.1965, 121.4565]
+      coord: [31.1965, 121.4565],
+      taxi: { addr: "上海市徐汇区枫林路269弄", station: "지하철 4호선 东安路站 인근 (지도 앱 확인)" }
     },
     {
-      id: "kdlpd",
-      no: "약",
-      kind: "pharmacy",
-      city: "shanghai",
-      cityLabel: "상하이 · 플랜B 약국",
-      name: "강더러 대약방 푸동점",
-      cn: "康德乐大药房 浦东店",
-      status: "review",
-      statusLabel: "DTP 전문약국 (플랜B)",
+      id: "kdlpd", no: "약", kind: "pharmacy", city: "shanghai", cityLabel: "상하이 · 플랜B 약국",
+      name: "강더러 대약방 푸동점", cn: "康德乐大药房 浦东店",
+      status: "review", statusLabel: "DTP 전문약국 (플랜B)",
       chips: ["플랜B 약국", "DTP 전문약국", "릴리 정식 취급"],
+      tags: ["planb"],
       facts: [
         ["전화", "021-60752616"],
         ["위치", "푸동신구 양가오난루 2875호"],
@@ -1014,308 +1548,265 @@
         ["구매", "병원에서 1펜만 주더라도 <b>외부 처방전(外配处方)</b>을 받아 오면 구매 가능"]
       ],
       note: "일라이 릴리 마운자로(<span>穆峰达</span>) 정식 취급 <strong>DTP 전문약국</strong>",
-      coord: [31.1816, 121.5318]
+      coord: [31.1816, 121.5318],
+      taxi: { addr: "上海市浦东新区杨高南路2875号", station: "런지병원 동원에서 택시 8~10분" }
     },
 
     /* ───────────── 닝보 ───────────── */
     {
-      id: "nb1",
-      no: 4,
-      city: "ningbo",
-      cityLabel: "닝보",
-      name: "닝보대학 부속 제1병원",
-      cn: "宁波大学附属第一医院 (본원)",
-      status: "pending",
-      statusLabel: "확인 예정 (11/17)",
+      id: "nb1", no: 4, city: "ningbo", cityLabel: "닝보",
+      name: "닝보대학 부속 제1병원", cn: "宁波大学附属第一医院 月湖院区",
+      status: "pending", statusLabel: "확인 예정 (11/17)",
       chips: ["3급 갑등 공립", "국제의료보건센터", "한국어 예약 지원"],
+      tags: ["korean", "daytrip"],
       facts: [
         ["진찰료", "일반외래 약 <b>25위안</b> / 국제부 별도"],
         ["특징", "국제의료보건센터 운영 · 영어 진료, 예약 시 한국어 지원"],
-        ["공항 동선", "리서공항 → 지하철 2호선 직통 <b>24분</b> (청황먀오역 바로 옆)"],
+        ["공항 동선", "리서공항 → 지하철 2호선 직통 <b>24분</b> · <b>城隍庙역 A출구 180m</b>"],
+        ["주소", "하이수구 류팅제 59호 (月湖院区)"],
         ["제주 직항", "춘추항공 월요일 당일치기 왕복 약 <b>18.9만 원</b>대 (12월 기준)"]
       ],
       note: "<strong>11/17 오전</strong> 외국인 처방·재고 전화 확인 예정",
-      coord: [29.8698, 121.5415]
+      coord: [29.8698, 121.5415],
+      taxi: { addr: "宁波市海曙区柳汀街59号", station: "地铁2号线 城隍庙站 A号出口（步行180米）" }
     },
     {
-      id: "nb2",
-      no: 5,
-      city: "ningbo",
-      cityLabel: "닝보",
-      name: "닝보시 제2병원",
-      cn: "宁波市第二医院",
-      status: "pending",
-      statusLabel: "확인 예정 (11/17)",
+      id: "nb2", no: 5, city: "ningbo", cityLabel: "닝보",
+      name: "닝보시 제2병원", cn: "宁波市第二医院",
+      status: "pending", statusLabel: "확인 예정 (11/17)",
       chips: ["3급 갑등 공립", "2,100병상", "국제SOS 지정"],
+      tags: ["daytrip"],
       facts: [
         ["규모", "3급 갑등 공립 · <b>2,100병상</b> · 국제SOS 지정"],
-        ["공항 동선", "제1병원에서 택시 <b>5분</b> / 2호선 구러우역 인근"]
+        ["공항 동선", "2호선 城隍庙역에서 1호선 환승 <b>西门口역</b> 도보 약 8분"],
+        ["제1병원에서", "택시 <b>5분</b>"]
       ],
       note: "<strong>11/17 오전</strong> 전화 확인 예정 · 제1병원과 묶어서 방문 가능",
-      coord: [29.8884, 121.5420]
+      coord: [29.8884, 121.5420],
+      taxi: { addr: "宁波市海曙区西北街41号", station: "地铁1号线 西门口站（步行约800米）" }
     },
     {
-      id: "lihuili",
-      no: 6,
-      city: "ningbo",
-      cityLabel: "닝보",
-      name: "리후이리병원 흥녕원구",
-      cn: "李惠利医院 兴宁院区",
-      status: "pending",
-      statusLabel: "확인 예정 (11/17)",
+      id: "lihuili", no: 6, city: "ningbo", cityLabel: "닝보",
+      name: "리후이리병원 흥녕원구", cn: "李惠利医院 兴宁院区",
+      status: "pending", statusLabel: "확인 예정 (11/17)",
       chips: ["3급 갑등 공립", "2,685병상", "MMC 운영"],
+      tags: ["daytrip"],
       facts: [
         ["규모", "3급 갑등 공립 · <b>2,685병상</b> · 비만·대사질환 관리센터(MMC)"],
-        ["공항 동선", "4호선 흥녕교역 인근 / 시내 택시 약 <b>15분</b>"]
+        ["공항 동선", "<b>4호선 白鹤역 B출구</b> (병원 공식 안내) · 시내 택시 약 15분"]
       ],
       note: "<strong>11/17 오전</strong> 전화 확인 예정",
-      coord: [29.8588, 121.5648]
+      coord: [29.8588, 121.5648],
+      taxi: { addr: "宁波市鄞州区兴宁路57号", station: "地铁4号线 白鹤站 B号出口" }
     },
 
     /* ───────────── 칭다오 ───────────── */
     {
-      id: "qd-east",
-      no: 7,
-      city: "qingdao",
-      cityLabel: "칭다오",
-      name: "칭다오 시립병원 동원 국제부",
-      cn: "青岛市市立医院 东院 国际门诊 (B동 2층)",
-      status: "review",
-      statusLabel: "후기 참고",
+      id: "qd-east", no: 7, city: "qingdao", cityLabel: "칭다오",
+      name: "칭다오 시립병원 동원 국제부", cn: "青岛市市立医院 东院 国际门诊 (B栋2层)",
+      status: "review", statusLabel: "후기 참고",
       chips: ["3급 갑등 공립", "국제진료부", "한국어 간호사"],
+      tags: ["korean", "daytrip"],
       facts: [
         ["진찰료", "<span class='price'>100위안</span> · 한국어 가능 간호사 상주"],
         ["처방 후기", "2.5mg 352 · 5mg 550 · 10mg 약 930위안 · 체중 관리 <b>1펜</b>(당뇨 2펜)"],
+        ["주소", "스난구 <b>东海中路5号</b> · 본관 아닌 옆 건물(B동) 2층"],
+        ["공항 동선", "자오둥공항 <b>8호선 직통 五四广场</b>(급행 40분) → 2호선 <b>燕儿岛路역 C출구</b> 도보 10분"],
         ["재고", "원내 품절 시 <b>도보 7~8분</b> 외부 약국에서 수령"],
-        ["공항 동선", "자오둥공항 택시 약 <b>80분</b>(65km) · 지하철 8호선→3호선"],
-        ["위치 주의", "본관 아닌 <b>왼쪽 건물 2층</b> 국제부 — 54광장에서 택시 10분"],
         ["항공", "인천 직항 1시간 30분 약 <b>15.2만</b> · 부산 21.8만 · 제주는 화·토 밤"]
       ],
       note: "한국인 여권 처방 후기 다수(2026-10~11) · <strong>공식 전화 확인 전</strong>",
-      coord: [36.0599, 120.4033]
+      coord: [36.0599, 120.4033],
+      taxi: { addr: "青岛市市南区东海中路5号", station: "地铁2号线 燕儿岛路站 C号出口（步行约10分钟）" }
     },
     {
-      id: "qd-main",
-      no: 8,
-      city: "qingdao",
-      cityLabel: "칭다오",
-      name: "칭다오 시립병원 본원 내분비과",
-      cn: "青岛市市立医院 本部 内分泌科",
-      status: "review",
-      statusLabel: "후기 참고",
+      id: "qd-main", no: 8, city: "qingdao", cityLabel: "칭다오",
+      name: "칭다오 시립병원 본원 내분비과", cn: "青岛市市立医院 本部 内分泌科",
+      status: "review", statusLabel: "후기 참고",
       chips: ["3급 갑등 공립", "일반외래", "내분비과"],
+      tags: ["daytrip"],
       facts: [
         ["진찰료", "일반외래 <span class='price'>18위안</span>"],
         ["약가", "5mg <b>551위안</b> · 원내 약국은 5mg 위주"],
         ["처방 한도", "의사가 <b>최대 1개월분(1펜)</b>만 처방했다는 후기"],
-        ["언어", "한국어 지원 확인 안 됨 · 번역 앱 필요"],
-        ["공항 동선", "자오둥공항 택시 약 <b>68분</b>(60km) · 시내 중심부"]
+        ["공항 동선", "<b>1호선 观象山(市立医院)역 A출구</b> · 택시 약 68분(60km)"],
+        ["언어", "한국어 지원 확인 안 됨 · 번역 앱 필요"]
       ],
       note: "동원 국제부보다 <strong>진찰료가 싸지만</strong> 외국인 응대·재고는 불확실",
-      coord: [36.0731, 120.3269]
+      coord: [36.0731, 120.3269],
+      taxi: { addr: "青岛市市北区胶州路1号", station: "地铁1号线 观象山站 A号出口" }
     },
 
     /* ───────────── 베이징 ───────────── */
     {
-      id: "bj-pumch",
-      no: 9,
-      city: "beijing",
-      cityLabel: "베이징",
-      name: "베이징 협화병원 국제의료부",
-      cn: "北京协和医院 国际医疗部",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "bj-pumch", no: 9, city: "beijing", cityLabel: "베이징",
+      name: "베이징 협화병원 국제의료부", cn: "北京协和医院 国际医疗部",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "국제의료부", "최상위 종합병원"],
+      tags: [],
       facts: [
-        ["위치", "둥청구 帅府园1号 · 왕푸징 인근"],
+        ["위치", "둥청구 <b>帅府园1号</b> · 왕푸징 인근"],
         ["진찰료", "국제부 진찰료 <b>미확인</b> — 전화 확인 필요"],
         ["처방", "외국인 마운자로 처방 <b>사례 없음</b>"],
-        ["공항 동선", "서우두공항 택시 약 <b>36분</b>(29km) · 다싱공항 약 64분(61km)"],
+        ["공항 동선", "수도공항선→2호선→1호선 <b>东单역 A/B출구</b> 약 60~70분 · 다싱공항 약 70분"],
         ["항공", "인천 직항 약 25.6만 · 부산 약 28.4만"]
       ],
       note: "국제진료부 운영은 공식 확인 · <strong>외국인 처방은 미확인</strong>",
-      coord: [39.9121, 116.4130]
+      coord: [39.9121, 116.4130],
+      taxi: { addr: "北京市东城区帅府园1号", station: "地铁1号线·5号线 东单站 A/B号出口 向北" }
     },
     {
-      id: "bj-cjfh",
-      no: 10,
-      city: "beijing",
-      cityLabel: "베이징",
-      name: "중일우호병원 국제부",
-      cn: "中日友好医院 国际部",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "bj-cjfh", no: 10, city: "beijing", cityLabel: "베이징",
+      name: "중일우호병원 국제부", cn: "中日友好医院 国际部",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "국제부", "차오양구"],
+      tags: [],
       facts: [
-        ["위치", "차오양구 樱花园东街2号"],
+        ["위치", "차오양구 <b>樱花园东街2号</b> (본부 동쪽 별관)"],
         ["진찰료", "<b>미확인</b> · 국제부 별도 접수"],
-        ["공항 동선", "서우두공항 택시 약 <b>28분</b>(24km)"],
-        ["처방", "외국인 처방 사례 미확인"],
-        ["항공", "인천 직항 약 25.6만 · 부산 약 28.4만"]
+        ["공항 동선", "5호선·10호선 <b>惠新西街南口역</b> 하차 후 동쪽 도보 · 서우두공항 택시 약 28분(24km)"],
+        ["처방", "외국인 처방 사례 미확인"]
       ],
       note: "국제부 운영 공식 확인 · <strong>마운자로 처방 미확인</strong>",
-      coord: [39.9743, 116.4288]
+      coord: [39.9743, 116.4288],
+      taxi: { addr: "北京市朝阳区樱花园东街2号", station: "地铁5号线·10号线 惠新西街南口站 向东" }
     },
 
     /* ───────────── 광저우 · 선전 ───────────── */
     {
-      id: "gz-sysu1",
-      no: 11,
-      city: "south",
-      cityLabel: "광저우",
-      name: "중산대 부속 제1병원",
-      cn: "中山大学附属第一医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "gz-sysu1", no: 11, city: "south", cityLabel: "광저우",
+      name: "중산대 부속 제1병원", cn: "中山大学附属第一医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "웨슈구", "국제진료"],
+      tags: [],
       facts: [
-        ["위치", "웨슈구 中山二路58号"],
+        ["위치", "웨슈구 <b>中山二路58号</b>"],
         ["진찰료", "<b>미확인</b> — 국제부·일반외래 별도"],
-        ["공항 동선", "바이윈공항 택시 약 <b>43분</b>(38km)"],
+        ["공항 동선", "바이윈공항 3호선(북연장) → 体育西路 → 1호선 <b>烈士陵园역 C출구</b> 200m, 약 50분"],
         ["항공", "부산 직항 약 30.6만 · 인천 직항 운항"],
         ["처방", "외국인 마운자로 처방 사례 미확인"]
       ],
       note: "국제진료 가능 · <strong>외국인 마운자로 처방 미확인</strong>",
-      coord: [23.1254, 113.2899]
+      coord: [23.1254, 113.2899],
+      taxi: { addr: "广州市越秀区中山二路58号", station: "地铁1号线 烈士陵园站 C号出口 向东200米" }
     },
     {
-      id: "gz-gdph",
-      no: 12,
-      city: "south",
-      cityLabel: "광저우",
-      name: "광둥성 인민병원",
-      cn: "广东省人民医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "gz-gdph", no: 12, city: "south", cityLabel: "광저우",
+      name: "광둥성 인민병원", cn: "广东省人民医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "웨슈구", "대형 종합병원"],
+      tags: [],
       facts: [
-        ["위치", "웨슈구 中山二路106号 · 제1병원에서 도보 5분"],
+        ["위치", "웨슈구 <b>中山二路106号</b> · 제1병원에서 도보 5분"],
         ["진찰료", "<b>미확인</b>"],
-        ["공항 동선", "바이윈공항 택시 약 <b>43분</b>(37km)"],
+        ["공항 동선", "1호선 <b>烈士陵园역 C출구</b> · 바이윈공항 택시 약 43분(37km)"],
         ["항공", "부산 직항 약 30.6만"]
       ],
       note: "중산대 제1병원과 <strong>같은 블록</strong> · 처방 미확인",
-      coord: [23.1257, 113.2872]
+      coord: [23.1257, 113.2872],
+      taxi: { addr: "广州市越秀区中山二路106号", station: "地铁1号线 烈士陵园站 C号出口" }
     },
     {
-      id: "gz-united",
-      no: 13,
-      city: "south",
-      cityLabel: "광저우",
-      name: "광저우 허무자(유나이티드 패밀리) 병원",
-      cn: "广州和睦家医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "gz-united", no: 13, city: "south", cityLabel: "광저우",
+      name: "광저우 허무자(유나이티드 패밀리) 병원", cn: "广州和睦家医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["사립 국제병원", "영어·한국어 진료", "패키지 공지"],
+      tags: ["korean"],
       facts: [
         ["공지", "초기 용량 투약 패키지 <b>599위안</b> 공지 (구성 미기재)"],
-        ["위치", "하이주구 琶洲大道33号"],
-        ["공항 동선", "바이윈공항 택시 약 <b>43분</b>(46km)"],
+        ["위치", "하이주구 <b>琶洲大道31号</b>"],
+        ["공항 동선", "8호선 琶洲역 인근 · 바이윈공항 택시 약 43분(46km)"],
         ["진찰료", "패키지 구성·처방 조건 <b>미확인</b>"]
       ],
       note: "공식 공지는 확인 · <strong>구성과 처방 조건은 미확인</strong>",
-      coord: [23.1022, 113.3385]
+      coord: [23.1022, 113.3385],
+      taxi: { addr: "广州市海珠区琶洲大道31号", station: "地铁8号线 琶洲站 附近" }
     },
     {
-      id: "sz-hku",
-      no: 14,
-      city: "south",
-      cityLabel: "선전",
-      name: "홍콩대학 선전병원",
-      cn: "香港大学深圳医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "sz-hku", no: 14, city: "south", cityLabel: "선전",
+      name: "홍콩대학 선전병원", cn: "香港大学深圳医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 공립", "국제진료", "영어 진료"],
+      tags: [],
       facts: [
-        ["위치", "푸톈구 海园一路1号"],
+        ["위치", "푸톈구 <b>海园一路1号</b>"],
         ["진찰료", "<b>미확인</b> · 국제진료부 운영"],
-        ["공항 동선", "바오안공항 택시 약 <b>36분</b>(34km)"],
+        ["공항 동선", "<b>9호선 深圳湾公园역 D1출구</b> 120m · 바오안공항 택시 약 36분(34km)"],
         ["참고", "선전 약국은 처방전 없이 사려다 실패한 후기 다수"]
       ],
       note: "국제진료부 공식 확인 · <strong>처방 사례 미확인</strong>",
-      coord: [22.5254, 113.9961]
+      coord: [22.5254, 113.9961],
+      taxi: { addr: "深圳市福田区海园一路1号", station: "地铁9号线 深圳湾公园站 D1号出口（120米）" }
     },
 
     /* ───────────── 항저우 ───────────── */
     {
-      id: "hz-zju1",
-      no: 15,
-      city: "hangzhou",
-      cityLabel: "항저우",
-      name: "절강대 의학원 부속 제1병원",
-      cn: "浙江大学医学院附属第一医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "hz-zju1", no: 15, city: "hangzhou", cityLabel: "항저우",
+      name: "절강대 의학원 부속 제1병원", cn: "浙江大学医学院附属第一医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "상청구", "국제진료"],
+      tags: [],
       facts: [
-        ["위치", "상청구 庆春路79号"],
+        ["위치", "상청구 <b>庆春路79号</b> (경춘원구)"],
         ["진찰료", "<b>미확인</b>"],
-        ["공항 동선", "샤오산공항 택시 약 <b>36분</b>(29km)"],
+        ["공항 동선", "공항역 1·7·19호선 → <b>5호선 万安桥역 D출구</b> 200m · 택시 약 36분(29km)"],
         ["항공", "부산 직항 약 20.4만"],
         ["처방", "외국인 처방 사례 미확인"]
       ],
       note: "항저우 대표 3급 갑등 · <strong>마운자로 처방 미확인</strong>",
-      coord: [30.2556, 120.1784]
+      coord: [30.2556, 120.1784],
+      taxi: { addr: "杭州市上城区庆春路79号", station: "地铁5号线 万安桥站 D号出口（200米）" }
     },
     {
-      id: "hz-zju2",
-      no: 16,
-      city: "hangzhou",
-      cityLabel: "항저우",
-      name: "절강대 의학원 부속 제2병원",
-      cn: "浙江大学医学院附属第二医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "hz-zju2", no: 16, city: "hangzhou", cityLabel: "항저우",
+      name: "절강대 의학원 부속 제2병원", cn: "浙江大学医学院附属第二医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "상청구", "응급·중증 특화"],
+      tags: [],
       facts: [
-        ["위치", "상청구 解放路88号 · 제1병원에서 도보 약 1km"],
+        ["위치", "상청구 <b>解放路88号</b> · 제1병원에서 도보 약 1km"],
         ["진찰료", "<b>미확인</b>"],
-        ["공항 동선", "샤오산공항 택시 약 <b>36분</b>(29km)"]
+        ["공항 동선", "5호선 万安桥역 인근 · 샤오산공항 택시 약 36분(29km)"]
       ],
       note: "제1병원과 <strong>도보권</strong> · 처방 미확인",
-      coord: [30.2508, 120.1771]
+      coord: [30.2508, 120.1771],
+      taxi: { addr: "杭州市上城区解放路88号", station: "地铁5号线 万安桥站 附近" }
     },
 
     /* ───────────── 선양 · 다롄 ───────────── */
     {
-      id: "sy-cmu1",
-      no: 17,
-      city: "northeast",
-      cityLabel: "선양",
-      name: "중국의과대학 부속 제1병원",
-      cn: "中国医科大学附属第一医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "sy-cmu1", no: 17, city: "northeast", cityLabel: "선양",
+      name: "중국의과대학 부속 제1병원", cn: "中国医科大学附属第一医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "허핑구", "동북 3성 거점"],
+      tags: [],
       facts: [
-        ["위치", "허핑구 南京北街155号"],
+        ["위치", "허핑구 <b>南京北街155号</b>"],
         ["진찰료", "<b>미확인</b>"],
-        ["공항 동선", "타오시안공항 택시 약 <b>35분</b>(27km)"],
+        ["공항 동선", "<b>1호선 太原街역 C출구</b> 방향 도보 약 10분 · 타오시안공항 택시 약 35분(27km)"],
         ["항공", "인천 직항 약 23.1만"],
         ["처방", "외국인 처방 사례 미확인"]
       ],
       note: "선양 대표 3급 갑등 · <strong>마운자로 처방 미확인</strong>",
-      coord: [41.7951, 123.4097]
+      coord: [41.7951, 123.4097],
+      taxi: { addr: "沈阳市和平区南京北街155号", station: "地铁1号线 太原街站 C号出口 方向" }
     },
     {
-      id: "dl-dmu1",
-      no: 18,
-      city: "northeast",
-      cityLabel: "다롄",
-      name: "다롄의과대학 부속 제1병원",
-      cn: "大连医科大学附属第一医院",
-      status: "official",
-      statusLabel: "공식 정보(미확인)",
+      id: "dl-dmu1", no: 18, city: "northeast", cityLabel: "다롄",
+      name: "다롄의과대학 부속 제1병원", cn: "大连医科大学附属第一医院",
+      status: "official", statusLabel: "공식 정보(미확인)",
       chips: ["3급 갑등 공립", "시강구", "공항 13km"],
+      tags: [],
       facts: [
-        ["위치", "시강구 中山路222号"],
+        ["위치", "시강구 <b>中山路222号</b> (장춘로원구)"],
         ["진찰료", "<b>미확인</b>"],
-        ["공항 동선", "저우수이즈공항 택시 약 <b>29분</b>(13.5km) — 시내와 가까움"],
+        ["공항 동선", "<b>2호선 人民广场역</b> 하차 바로 · 저우수이즈공항에서 2호선 직통"],
         ["항공", "인천 직항 약 20.4만"],
         ["참고", "다롄 약국은 처방전 없이 사려다 실패한 후기"]
       ],
       note: "공항이 가까운 3급 갑등 · <strong>처방 미확인</strong>",
-      coord: [38.9101, 121.6118]
+      coord: [38.9101, 121.6118],
+      taxi: { addr: "大连市西岗区中山路222号", station: "地铁2号线 人民广场站 下车即是" }
     }
   ];
 
@@ -1331,33 +1822,99 @@
   };
   var CITY_ORDER = ["all", "shanghai", "ningbo", "qingdao", "beijing", "south", "hangzhou", "northeast"];
 
-  var state = { city: "all", onlyConfirmed: false, selected: null };
+  var FILTERS = [
+    { key: "all",       label: "전체",        test: function () { return true; } },
+    { key: "confirmed", label: "전화 확인됨", test: function (h) { return h.status === "confirmed"; } },
+    { key: "korean",    label: "한국어 가능", test: function (h) { return (h.tags || []).indexOf("korean") > -1; } },
+    { key: "daytrip",   label: "당일치기 추천", test: function (h) { return (h.tags || []).indexOf("daytrip") > -1; } },
+    { key: "planb",     label: "플랜B 약국",  test: function (h) { return h.kind === "pharmacy"; } }
+  ];
+
+  var PHRASES = [
+    { cn: "我要开穆峰达5毫克，3支。", pron: "워 야오 카이 무펑다 우 하오커, 싼 즈", ko: "마운자로 5mg, 3펜 처방해 주세요." },
+    { cn: "我要挂国际门诊的号。", pron: "워 야오 과 궈지 먼전 더 하오", ko: "국제진료부 접수를 하고 싶어요." },
+    { cn: "请给我处方和打印的发票。", pron: "칭 게이 워 추팡 허 다인 더 파피아오", ko: "처방전과 인쇄한 영수증(发票)을 주세요." },
+    { cn: "请再给我32G 4毫米的针头。", pron: "칭 짜이 게이 워 싼스얼 G 스 하오미 더 전터우", ko: "32G 4mm 주사침도 같이 주세요." },
+    { cn: "有保冷袋或冰袋吗？", pron: "요우 바오렁 다이 훠 빙다이 마", ko: "보냉백이나 아이스팩 있나요?" },
+    { cn: "这个剂量有现货吗？总共多少钱？", pron: "저거 지량 요우 시엔훠 마? 쫑꽁 두오샤오 치엔", ko: "이 용량 재고 있나요? 총 얼마예요?" }
+  ];
+
+  var CHECKLIST = [
+    { id: "passport", t: "여권 (무비자 30일)", s: "6개월 이상 유효 · 왕복 항공권 출력" },
+    { id: "pay", t: "알리페이 · 위챗페이", s: "카드 등록·소액 결제 테스트까지" },
+    { id: "rx", t: "한국 기존 처방전 · 투여 이력", s: "약봉투·진료확인서 포함" },
+    { id: "address", t: "중국어 병원 주소 저장", s: "이 페이지 🚕 카드로 캡처" },
+    { id: "cooler", t: "보냉 파우치 + 아이스팩", s: "2~8℃ · 기내 휴대" },
+    { id: "needle", t: "32G 4mm 주사침", s: "병원·약국에서 안 주는 경우 많음" },
+    { id: "swab", t: "알코올 스왑 · 바늘 폐기통", s: "주사 전 소독·사용 후 처리" },
+    { id: "esim", t: "중국 eSIM (VPN 포함)", s: "지도·번역·결제에 데이터 필수" },
+    { id: "invoice", t: "처방전 · 인쇄 영수증(发票)", s: "현지에서 수령 즉시 확인" },
+    { id: "cabin", t: "약은 기내 가방에", s: "위탁 금지 · 서류 함께" }
+  ];
+
+  var SHOP = [
+    {
+      key: "coolerPouch", ico: "🧊", tag: "1순위",
+      title: "보냉 파우치 + 아이스팩",
+      spec: "2~8℃ · 12~24시간 유지",
+      why: "위탁 화물칸은 영하로 내려가 약이 얼 수 있습니다. 기내 휴대 가방에 넣고 숙소 이동까지 온도를 지키세요. 아이스팩은 액체류로 볼 수 있어 보안검색 때 처방전을 함께 보여 주세요."
+    },
+    {
+      key: "needles32g", ico: "💉", tag: "필수",
+      title: "펜형 주사기용 32G 4mm 주사침",
+      spec: "32G · 4mm · 100개입",
+      why: "중국 병원·약국에서 주사침을 따로 주지 않는 경우가 많습니다. 마운자로 퀵펜에 호환되는 규격이고, 한국에서는 처방전 없이 구매할 수 있습니다."
+    },
+    {
+      key: "swabBin", ico: "🧴", tag: "위생",
+      title: "알코올 스왑 + 휴대용 바늘 폐기통",
+      spec: "스왑 100매 · 미니 폐기통",
+      why: "주사 전 소독과 사용한 바늘 처리에 필요합니다. 호텔·기내 쓰레기통에 바늘을 그대로 버리는 건 위험합니다."
+    },
+    {
+      key: "chinaEsim", ico: "📶", tag: "결제·지도",
+      title: "중국 eSIM (데이터 무제한 · VPN)",
+      spec: "데이터 전용 · 설치형",
+      why: "알리페이·위챗페이 결제, 高德 지도, 번역 앱이 모두 데이터를 씁니다. 중국에서는 구글·카카오가 막혀 VPN 포함 상품이 편합니다."
+    },
+    {
+      key: "adapterPower", ico: "🔌", tag: "충전",
+      title: "해외 멀티어댑터 + 고속 보조배터리",
+      spec: "중국형 I형 · 20,000mAh",
+      why: "중국 콘센트는 I형(220V)입니다. 보조배터리는 기내 반입만 되고 위탁 수하물은 금지입니다."
+    }
+  ];
+
+  var state = { city: "all", filter: "all", selected: null, showAll: false };
+
+  function byId(id) {
+    for (var i = 0; i < HOSPITALS.length; i++) if (HOSPITALS[i].id === id) return HOSPITALS[i];
+    return null;
+  }
 
   /* ------------------------------------------------------------------ 지도 */
-  var map = L.map("map", {
-    zoomControl: true,
-    scrollWheelZoom: true,
-    attributionControl: true,
-    minZoom: 3,
-    maxZoom: 18,
-    worldCopyJump: true
-  }).setView([33.0, 121.0], 5);
-
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-  var markerLayer = L.layerGroup().addTo(map);
-  var markersById = {};
-  window.mjMap = map;
-
   var mapEl = document.getElementById("map");
-  function syncTileWeight() {
-    mapEl.classList.toggle("low-zoom", map.getZoom() <= 7);
+  var map = null;
+  var markerLayer = null;
+  var markersById = {};
+  try {
+    if (window.L && mapEl) {
+      map = L.map("map", {
+        zoomControl: true, scrollWheelZoom: true, attributionControl: true,
+        minZoom: 3, maxZoom: 18, worldCopyJump: true
+      }).setView([33.0, 121.0], 5);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+      map.on("zoomend", function () { mapEl.classList.toggle("low-zoom", map.getZoom() <= 7); });
+      mapEl.classList.add("low-zoom");
+    }
+  } catch (err) { map = null; markerLayer = null; }
+  if (!map && mapEl) {
+    mapEl.innerHTML = '<div class="map-fallback"><b>지도를 불러오지 못했어요.</b><br />지도 타일 서버에 접속하지 못한 경우에도 카드 목록·필터·계산기는 그대로 동작합니다.</div>';
   }
-  map.on("zoomend", syncTileWeight);
-  syncTileWeight();
 
   function statusClass(h) {
     if (h.kind === "pharmacy") return "is-pharmacy";
@@ -1373,7 +1930,6 @@
     if (h.status === "official") return "badge-official";
     return "badge-pending";
   }
-
   function pinIcon(h) {
     var isPh = h.kind === "pharmacy";
     var fill = isPh ? "#6d28d9"
@@ -1384,23 +1940,14 @@
     var label = isPh ? "약" : h.no;
     var svg =
       '<svg width="36" height="45" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
-        '<path d="M16 2C8.3 2 2 8.3 2 16c0 9.6 11.6 19.1 13.2 20.4a1.2 1.2 0 0 0 1.6 0C18.4 35.1 30 25.6 30 16 30 8.3 23.7 2 16 2z" ' +
-          'fill="' + fill + '" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>' +
+        '<path d="M16 2C8.3 2 2 8.3 2 16c0 9.6 11.6 19.1 13.2 20.4a1.2 1.2 0 0 0 1.6 0C18.4 35.1 30 25.6 30 16 30 8.3 23.7 2 16 2z" fill="' + fill + '" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>' +
         '<text class="pin-num" x="16" y="20.5" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Noto Sans KR,sans-serif" font-weight="800" fill="#fff">' + label + "</text>" +
       "</svg>";
-    return L.divIcon({
-      className: "pin-wrap",
-      html: svg,
-      iconSize: [36, 45],
-      iconAnchor: [18, 44],
-      popupAnchor: [0, -38]
-    });
+    return L.divIcon({ className: "pin-wrap", html: svg, iconSize: [36, 45], iconAnchor: [18, 44], popupAnchor: [0, -38] });
   }
 
   function popupHtml(h) {
-    var rows = h.facts.slice(0, 3).map(function (f) {
-      return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
-    }).join("");
+    var rows = h.facts.slice(0, 3).map(function (f) { return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>"; }).join("");
     return (
       '<div class="pop">' +
         '<div class="pop-city">' + h.cityLabel + "</div>" +
@@ -1409,49 +1956,47 @@
         '<span class="badge ' + badgeClass(h) + '">' + h.statusLabel + "</span>" +
         "<dl>" + rows + "</dl>" +
         (h.status !== "confirmed" ? '<p class="pop-note">' + h.note.replace(/<[^>]+>/g, "") + "</p>" : "") +
+        '<button class="pop-taxi" type="button" data-taxi="' + h.id + '">🚕 기사님께 보여주기</button>' +
       "</div>"
     );
   }
 
   function visibleHospitals() {
+    var f = FILTERS.filter(function (x) { return x.key === state.filter; })[0] || FILTERS[0];
     return HOSPITALS.filter(function (h) {
       if (state.city !== "all" && h.city !== state.city) return false;
-      if (state.onlyConfirmed && h.status !== "confirmed") return false;
-      return true;
+      return f.test(h);
     });
   }
 
   function fitTo(list) {
-    if (!list.length) return;
-    if (list.length === 1) {
-      map.flyTo(list[0].coord, 15, { duration: 0.6 });
-      return;
-    }
+    if (!map || !list.length) return;
+    if (list.length === 1) { map.flyTo(list[0].coord, 15, { duration: 0.6 }); return; }
     var bounds = L.latLngBounds(list.map(function (h) { return h.coord; }));
     map.flyToBounds(bounds, { padding: [70, 70], maxZoom: 13, duration: 0.6 });
   }
 
   var CITY_PINS = {
-    shanghai:  { label: "상하이",     coord: [31.2290, 121.5215] },
-    ningbo:    { label: "닝보",       coord: [29.8730, 121.5480] },
-    qingdao:   { label: "칭다오",     coord: [36.0671, 120.3826] },
-    beijing:   { label: "베이징",     coord: [39.9400, 116.4200] },
+    shanghai:  { label: "상하이", coord: [31.2290, 121.5215] },
+    ningbo:    { label: "닝보", coord: [29.8730, 121.5480] },
+    qingdao:   { label: "칭다오", coord: [36.0671, 120.3826] },
+    beijing:   { label: "베이징", coord: [39.9400, 116.4200] },
     south:     { label: "광저우·선전", coord: [23.1000, 113.4500] },
-    hangzhou:  { label: "항저우",     coord: [30.2530, 120.1777] },
-    northeast: { label: "선양·다롄",   coord: [40.3500, 122.5000] }
+    hangzhou:  { label: "항저우", coord: [30.2530, 120.1777] },
+    northeast: { label: "선양·다롄", coord: [40.3500, 122.5000] }
   };
 
   function clusterIcon(city, n) {
     return L.divIcon({
       className: "cluster-wrap",
-      html: '<div class="cluster"><div class="cluster-bubble">' + n + '<small>곳</small></div>' +
+      html: '<div class="cluster"><div class="cluster-bubble">' + n + "<small>곳</small></div>" +
             '<div class="cluster-label">' + CITY_PINS[city].label + "</div></div>",
-      iconSize: [0, 0],
-      iconAnchor: [0, 0]
+      iconSize: [0, 0], iconAnchor: [0, 0]
     });
   }
 
   function renderClusters() {
+    if (!map) return;
     markerLayer.clearLayers();
     markersById = {};
     var counts = {};
@@ -1461,35 +2006,28 @@
       if (!n) return;
       var m = L.marker(CITY_PINS[city].coord, { icon: clusterIcon(city, n), title: CITY_PINS[city].label + " " + n + "곳" });
       m.on("click", function () {
-        state.city = city;
-        state.selected = null;
-        syncTabs();
-        renderCards();
-        renderMap();
+        state.city = city; state.selected = null;
+        syncTabs(); renderCards(); renderMap();
       });
       markerLayer.addLayer(m);
     });
     var pts = Object.keys(counts).map(function (c) { return CITY_PINS[c].coord; });
     if (pts.length > 1) {
-      var b = L.latLngBounds(pts);
-      map.flyToBounds(b, {
-        padding: map.getSize().x < 680 ? [28, 28] : [60, 60],
-        maxZoom: 6,
-        duration: 0.6
-      });
+      map.flyToBounds(L.latLngBounds(pts), { padding: map.getSize().x < 680 ? [28, 28] : [60, 60], maxZoom: 6, duration: 0.6 });
     } else if (pts.length === 1) {
       map.flyTo(pts[0], 11, { duration: 0.6 });
     }
   }
 
   function renderMap() {
+    if (!map) return;
     if (state.city === "all") { renderClusters(); return; }
     markerLayer.clearLayers();
     markersById = {};
     var list = visibleHospitals();
     list.forEach(function (h) {
       var m = L.marker(h.coord, { icon: pinIcon(h), title: h.name, alt: h.name + " 위치" });
-      m.bindPopup(popupHtml(h), { maxWidth: 280, minWidth: 240, closeButton: true, autoPanPadding: [30, 30] });
+      m.bindPopup(popupHtml(h), { maxWidth: 290, minWidth: 250, closeButton: true, autoPanPadding: [30, 30] });
       m.on("click", function () { setActiveCard(h.id); });
       markerLayer.addLayer(m);
       markersById[h.id] = m;
@@ -1497,7 +2035,6 @@
     if (state.selected && !markersById[state.selected]) state.selected = null;
     fitTo(list);
     if (list.length === 1) {
-      // 단일 핀일 때 팝업도 함께 열어 정보가 바로 보이게
       window.setTimeout(function () {
         var m = markersById[list[0].id];
         if (m && !m.isPopupOpen()) m.openPopup();
@@ -1510,41 +2047,62 @@
 
   function cardHtml(h) {
     var chips = h.chips.map(function (c, i) {
-      var cls = c.indexOf("플랜B") === 0 ? " city planb" : (i === 0 ? " city" : "");
+      var cls = c.indexOf("플랜B") === 0 ? " planb" : (c.indexOf("한국어") > -1 ? " kr" : (i === 0 ? " city" : ""));
       return '<span class="chip' + cls + '">' + c + "</span>";
     }).join("");
-    var facts = h.facts.map(function (f) {
-      return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>";
-    }).join("");
+    var facts = h.facts.map(function (f) { return "<dt>" + f[0] + "</dt><dd>" + f[1] + "</dd>"; }).join("");
     return (
-      '<button class="card" type="button" data-id="' + h.id + '" aria-label="' + h.name + " 상세 보기\">" +
+      '<div class="card" role="button" tabindex="0" data-id="' + h.id + '" aria-label="' + h.name + ' 상세 보기">' +
         '<div class="card-top">' +
           '<span class="card-no ' + statusClass(h) + '">' + h.no + "</span>" +
-          '<div class="card-titles">' +
-            "<h3>" + h.name + "</h3>" +
-            '<p class="cn">' + h.cn + "</p>" +
-          "</div>" +
+          '<div class="card-titles"><h3>' + h.name + "</h3><p class=\"cn\">" + h.cn + "</p></div>" +
           '<span class="badge ' + badgeClass(h) + '">' + h.statusLabel + "</span>" +
         "</div>" +
         '<div class="chips">' + chips + "</div>" +
         '<dl class="facts">' + facts + "</dl>" +
         '<p class="note">' + h.note + "</p>" +
-      "</button>"
+        '<div class="card-actions">' +
+          '<button class="act primary" type="button" data-taxi="' + h.id + '">🚕 기사님 보여주기</button>' +
+          '<button class="act" type="button" data-copy-addr="' + h.id + '">중국어 주소 복사</button>' +
+        "</div>" +
+      "</div>"
     );
   }
 
+  var FILTER_HINTS = {
+    all: "도시 안의 모든 병원·약국",
+    confirmed: "전화로 처방·재고까지 확인이 끝난 곳",
+    korean: "한국어 응대가 확인된 곳(예약 지원·간호사·진료)",
+    daytrip: "제주·인천에서 당일 왕복이 가능한 도시(상하이 3 · 닝보 3 · 칭다오 2)",
+    planb: "병원 1펜 처방 시 추가 구매하는 약국"
+  };
+
+  function renderFilters() {
+    var wrap = document.getElementById("filters");
+    var cityList = HOSPITALS.filter(function (h) { return state.city === "all" || h.city === state.city; });
+    wrap.innerHTML = FILTERS.map(function (f) {
+      var n = cityList.filter(f.test).length;
+      return '<button type="button" class="fchip" data-filter="' + f.key + '" title="' + (FILTER_HINTS[f.key] || "") + '" aria-pressed="' +
+        (f.key === state.filter ? "true" : "false") + '">' + f.label + ' <span class="n">' + n + "</span></button>";
+    }).join("");
+  }
+
+  function isMobile() { return window.matchMedia("(max-width: 900px)").matches; }
+
   function renderCards() {
     var list = visibleHospitals();
-    document.getElementById("listTitle").innerHTML = CITY_META[state.city].title +
-      ' <span class="sub" id="listCount">' + list.length + "곳</span>";
+    var fLabel = (FILTERS.filter(function (x) { return x.key === state.filter; })[0] || FILTERS[0]).label;
+    var title = state.city === "all" ? "전체" : CITY_META[state.city].title;
+    document.getElementById("listTitle").innerHTML = (state.filter === "all" ? title + " 병원" : fLabel + " · " + title) +
+      ' <span class="sub">' + list.length + "곳</span>";
     if (!list.length) {
-      cardsEl.innerHTML = '<div class="empty">확인된 병원이 아직 없습니다.<br />“확인된 곳만” 필터를 풀면 전체 목록을 볼 수 있어요.</div>';
+      cardsEl.innerHTML = '<div class="empty">조건에 맞는 곳이 없습니다.<br />필터를 “전체”로 바꾸면 20곳을 볼 수 있어요.</div>';
       return;
     }
-    cardsEl.innerHTML = list.map(cardHtml).join("");
-    Array.prototype.forEach.call(cardsEl.querySelectorAll(".card"), function (el) {
-      el.addEventListener("click", function () { selectHospital(el.getAttribute("data-id"), true); });
-    });
+    var capped = isMobile() && state.city === "all" && !state.showAll && list.length > 6;
+    var shown = capped ? list.slice(0, 6) : list;
+    cardsEl.innerHTML = shown.map(cardHtml).join("") +
+      (capped ? '<button class="load-more" type="button" id="loadMore">' + list.length + "곳 모두 보기 · " + (list.length - 6) + "곳 더</button>" : "");
     if (state.selected) {
       var active = cardsEl.querySelector('.card[data-id="' + state.selected + '"]');
       if (active) active.classList.add("is-active");
@@ -1563,20 +2121,18 @@
   }
 
   function selectHospital(id, fromCard) {
-    var h = HOSPITALS.filter(function (x) { return x.id === id; })[0];
+    var h = byId(id);
     if (!h) return;
     if (state.city !== h.city) {
       state.city = h.city;
-      syncTabs();
-      renderCards();
-      renderMap();
+      syncTabs(); renderFilters(); renderCards(); renderMap();
       window.setTimeout(function () {
         var m = markersById[id];
         if (m) m.openPopup();
       }, 800);
     } else {
       var m = markersById[id];
-      if (m) {
+      if (m && map) {
         map.flyTo(h.coord, Math.max(map.getZoom(), 14), { duration: 0.55 });
         window.setTimeout(function () { m.openPopup(); }, 320);
       }
@@ -1584,13 +2140,34 @@
     setActiveCard(id);
     if (fromCard) {
       var card = cardsEl.querySelector('.card[data-id="' + id + '"]');
-      if (card && card.scrollIntoView) {
-        card.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      }
+      if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   }
 
-  /* ------------------------------------------------------------------ 탭 */
+  cardsEl.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t.id === "loadMore") { state.showAll = true; renderCards(); return; }
+    var taxiBtn = t.closest ? t.closest("[data-taxi]") : null;
+    if (taxiBtn) { e.preventDefault(); e.stopPropagation(); openTaxi(taxiBtn.getAttribute("data-taxi")); return; }
+    var copyBtn = t.closest ? t.closest("[data-copy-addr]") : null;
+    if (copyBtn) {
+      e.preventDefault(); e.stopPropagation();
+      var h = byId(copyBtn.getAttribute("data-copy-addr"));
+      if (h && h.taxi) copyText(h.taxi.addr, "중국어 주소를 복사했어요");
+      return;
+    }
+    var card = t.closest ? t.closest(".card") : null;
+    if (card) selectHospital(card.getAttribute("data-id"), true);
+  });
+  cardsEl.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest ? e.target.closest(".card") : null;
+    if (!card || e.target !== card) return;
+    e.preventDefault();
+    selectHospital(card.getAttribute("data-id"), true);
+  });
+
+  /* ------------------------------------------------------------------ 탭 · 필터 */
   var tabsEl = document.getElementById("cityTabs");
   var tabHintEl = tabsEl.querySelector(".tabs-hint");
   function buildTabs() {
@@ -1616,24 +2193,239 @@
     if (!btn) return;
     var city = btn.getAttribute("data-city");
     if (city === state.city) return;
-    state.city = city;
-    state.selected = null;
-    syncTabs();
-    renderCards();
-    renderMap();
+    state.city = city; state.selected = null; state.showAll = false;
+    syncTabs(); renderFilters(); renderCards(); renderMap();
   });
 
-  document.getElementById("onlyConfirmed").addEventListener("change", function (e) {
-    state.onlyConfirmed = e.target.checked;
-    state.selected = null;
-    renderCards();
-    renderMap();
+  document.getElementById("filters").addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-filter]") : null;
+    if (!btn) return;
+    var key = btn.getAttribute("data-filter");
+    if (key === state.filter) return;
+    state.filter = key; state.selected = null; state.showAll = false;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function (b) {
+      b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+    });
+    renderFilters(); renderCards(); renderMap();
+  });
+
+  /* ------------------------------------------------------------------ 플래시카드 */
+  var flash = document.getElementById("flash");
+  var flashBody = document.getElementById("flashBody");
+  var flashActs = document.getElementById("flashActs");
+  var flashKicker = document.getElementById("flashKicker");
+  var flashSize = 0;
+  var flashPayload = null;
+
+  function setFlashSize() {
+    flash.classList.toggle("flash-big", flashSize === 1);
+    flash.classList.toggle("flash-bigger", flashSize === 2);
+    var b = document.getElementById("flashSizeBtn");
+    if (b) b.textContent = flashSize === 0 ? "🔍 글씨 크게" : (flashSize === 1 ? "🔍 더 크게" : "🔍 기본 크기");
+  }
+  function openFlash(kicker, bodyHtml, acts, payload) {
+    flashPayload = payload || null;
+    flashKicker.textContent = kicker;
+    flashBody.innerHTML = bodyHtml;
+    flashActs.innerHTML = acts;
+    flash.hidden = false;
+    document.body.style.overflow = "hidden";
+    flashSize = 0;
+    setFlashSize();
+    var c = document.getElementById("flashClose");
+    if (c) c.focus();
+  }
+  function closeFlash() {
+    flash.hidden = true;
+    document.body.style.overflow = "";
+    flashPayload = null;
+  }
+
+  function openTaxi(id) {
+    var h = byId(id);
+    if (!h || !h.taxi) return;
+    var body =
+      '<div class="flash-block"><div class="flash-label">병원·약국 이름 · 医院名称</div>' +
+        '<div class="flash-cn">' + h.cn + "</div></div>" +
+      '<div class="flash-block"><div class="flash-label">주소 · 地址</div>' +
+        '<div class="flash-addr">' + h.taxi.addr + "</div></div>" +
+      (h.taxi.station ? '<div class="flash-block"><div class="flash-label">가까운 역 · 最近的地铁站</div>' +
+        '<div class="flash-station">' + h.taxi.station + "</div></div>" : "") +
+      '<div class="flash-ko">' + h.name + " · 이 화면을 기사님께 그대로 보여주세요. 도착하면 병원 이름을 다시 확인하세요.</div>";
+    var acts =
+      '<button class="flash-btn solid" type="button" id="flashSizeBtn">🔍 글씨 크게</button>' +
+      '<button class="flash-btn" type="button" data-flash-copy="addr">📋 주소 복사</button>' +
+      '<button class="flash-btn" type="button" id="flashDone">닫기</button>';
+    openFlash("🚕 기사님께 이 화면을 보여주세요", body, acts, { type: "taxi", id: id });
+    document.getElementById("flashSizeBtn").addEventListener("click", function () {
+      flashSize = (flashSize + 1) % 3;
+      setFlashSize();
+    });
+    document.getElementById("flashDone").addEventListener("click", closeFlash);
+    var cp = flashActs.querySelector("[data-flash-copy]");
+    if (cp) cp.addEventListener("click", function () { copyText(h.taxi.addr, "중국어 주소를 복사했어요"); });
+  }
+
+  function openPhrase(i) {
+    var p = PHRASES[i];
+    if (!p) return;
+    var body =
+      '<div class="flash-block"><div class="flash-label">중국어</div><div class="flash-cn">' + p.cn + "</div></div>" +
+      '<div class="flash-block"><div class="flash-label">한국어 뜻</div><div class="flash-station">' + p.ko + "</div></div>" +
+      '<div class="flash-ko">한국어 발음 · ' + p.pron + "</div>";
+    var acts =
+      '<button class="flash-btn solid" type="button" id="flashSizeBtn">🔍 글씨 크게</button>' +
+      '<button class="flash-btn" type="button" data-flash-copy="cn">📋 중국어 복사</button>' +
+      '<button class="flash-btn" type="button" id="flashDone">닫기</button>';
+    openFlash("💬 화면을 보여주며 말해 보세요", body, acts, { type: "phrase", i: i });
+    document.getElementById("flashSizeBtn").addEventListener("click", function () {
+      flashSize = (flashSize + 1) % 3;
+      setFlashSize();
+    });
+    document.getElementById("flashDone").addEventListener("click", closeFlash);
+    var cp = flashActs.querySelector("[data-flash-copy]");
+    if (cp) cp.addEventListener("click", function () { copyText(p.cn, "중국어 문장을 복사했어요"); });
+  }
+
+  document.getElementById("flashClose").addEventListener("click", closeFlash);
+  flash.addEventListener("click", function (e) {
+    if (e.target === flash) closeFlash();
+  });
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    var b = t.closest ? t.closest("[data-taxi]") : null;
+    if (b && !cardsEl.contains(b)) openTaxi(b.getAttribute("data-taxi"));
+  });
+
+  /* ------------------------------------------------------------------ 복사 · 토스트 · 공유 */
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () { toastEl.classList.remove("show"); }, 2200);
+  }
+  function copyText(text, okMsg) {
+    var done = function () { toast(okMsg || "복사했어요"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { legacyCopy(text) ? done() : toast("복사가 막혔어요. 길게 눌러 선택해 주세요."); });
+      return;
+    }
+    legacyCopy(text) ? done() : toast("복사가 막혔어요. 길게 눌러 선택해 주세요.");
+  }
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (err) { return false; }
+  }
+
+  var SHARE_URL = "https://spaltino.github.io/malajaro-map/";
+  document.getElementById("shareBtn").addEventListener("click", function () {
+    var data = {
+      title: "🌶️ 마라자로 맵 — 중국 마운자로 처방 병원 지도",
+      text: "중국 9개 도시 마운자로 처방 병원 20곳 · 공항 동선 · 세관 한도 · 실전 중국어까지",
+      url: SHARE_URL
+    };
+    if (navigator.share) {
+      navigator.share(data).catch(function () {});
+      return;
+    }
+    copyText(SHARE_URL, "링크를 복사했어요. 붙여넣기 해 주세요");
+  });
+
+  /* ------------------------------------------------------------------ 회화 카드 */
+  document.getElementById("phraseGrid").innerHTML = PHRASES.map(function (p, i) {
+    return '<article class="phrase-card">' +
+      '<span class="phrase-num">' + ("0" + (i + 1)).slice(-2) + "</span>" +
+      '<div class="phrase-cn">' + p.cn + "</div>" +
+      '<div class="phrase-pron">' + p.pron + "</div>" +
+      '<div class="phrase-ko">' + p.ko + "</div>" +
+      '<div class="phrase-acts">' +
+        '<button class="act primary" type="button" data-phrase="' + i + '">🔍 크게 보기</button>' +
+        '<button class="act" type="button" data-copy-phrase="' + i + '">📋 복사</button>' +
+      "</div></article>";
+  }).join("");
+
+  document.getElementById("phraseGrid").addEventListener("click", function (e) {
+    var big = e.target.closest ? e.target.closest("[data-phrase]") : null;
+    if (big) { openPhrase(parseInt(big.getAttribute("data-phrase"), 10)); return; }
+    var cp = e.target.closest ? e.target.closest("[data-copy-phrase]") : null;
+    if (cp) copyText(PHRASES[parseInt(cp.getAttribute("data-copy-phrase"), 10)].cn, "중국어 문장을 복사했어요");
+  });
+
+  /* ------------------------------------------------------------------ 준비물 (쿠팡) */
+  document.getElementById("shopGrid").innerHTML = SHOP.map(function (s) {
+    var href = partnerUrl(s.key);
+    return '<article class="shop-card">' +
+      '<span class="shop-tag">' + s.tag + "</span>" +
+      '<span class="shop-ico" aria-hidden="true">' + s.ico + "</span>" +
+      "<h3>" + s.title + "</h3>" +
+      '<div class="shop-spec">' + s.spec + "</div>" +
+      '<p class="shop-why">' + s.why + "</p>" +
+      '<a class="shop-cta" href="' + href + '" target="_blank" rel="noopener sponsored nofollow">쿠팡에서 찾기 ↗</a>' +
+      "</article>";
+  }).join("");
+
+  /* ------------------------------------------------------------------ 체크리스트 */
+  var CHECK_KEY = "malajaro.check.v1";
+  function loadChecks() {
+    try {
+      var raw = window.localStorage.getItem(CHECK_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (err) { return []; }
+  }
+  function saveChecks(arr) {
+    try { window.localStorage.setItem(CHECK_KEY, JSON.stringify(arr)); } catch (err) {}
+  }
+  function renderChecks() {
+    var done = loadChecks();
+    var grid = document.getElementById("checkGrid");
+    grid.innerHTML = CHECKLIST.map(function (c) {
+      var on = done.indexOf(c.id) > -1;
+      return '<label class="check-item' + (on ? " done" : "") + '">' +
+        '<input type="checkbox" data-check="' + c.id + '"' + (on ? " checked" : "") + " />" +
+        '<span class="ct">' + c.t + "<small>" + c.s + "</small></span></label>";
+    }).join("");
+    var n = done.length;
+    document.getElementById("checkCount").innerHTML = "<span>" + n + "</span> / " + CHECKLIST.length + " 완료";
+    document.getElementById("checkBar").style.width = Math.round((n / CHECKLIST.length) * 100) + "%";
+  }
+  document.getElementById("checkGrid").addEventListener("change", function (e) {
+    var cb = e.target;
+    if (!cb.getAttribute || !cb.getAttribute("data-check")) return;
+    var id = cb.getAttribute("data-check");
+    var done = loadChecks();
+    var i = done.indexOf(id);
+    if (cb.checked && i < 0) done.push(id);
+    if (!cb.checked && i > -1) done.splice(i, 1);
+    saveChecks(done);
+    var item = cb.closest ? cb.closest(".check-item") : null;
+    if (item) item.classList.toggle("done", cb.checked);
+    var n = done.length;
+    document.getElementById("checkCount").innerHTML = "<span>" + n + "</span> / " + CHECKLIST.length + " 완료";
+    document.getElementById("checkBar").style.width = Math.round((n / CHECKLIST.length) * 100) + "%";
+    if (n === CHECKLIST.length) toast("준비 완료! 좋은 여행 되세요 🌶️");
+  });
+  document.getElementById("checkReset").addEventListener("click", function () {
+    saveChecks([]);
+    renderChecks();
+    toast("체크리스트를 비웠어요");
   });
 
   /* ------------------------------------------------------------------ 가이드 모달 */
   var modal = document.getElementById("guideModal");
   var lastFocus = null;
-
   function openGuide() {
     lastFocus = document.activeElement;
     modal.hidden = false;
@@ -1646,14 +2438,14 @@
     document.body.style.overflow = "";
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
-  document.getElementById("guideBtn").addEventListener("click", openGuide);
+  ["guideBtn", "guideBtn2", "footGuide"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("click", openGuide);
+  });
   modal.addEventListener("click", function (e) {
     if (e.target.getAttribute && e.target.getAttribute("data-close")) closeGuide();
   });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !modal.hidden) closeGuide();
-  });
-  /* ------------------------------------------------------------------ 원정 손익 계산기 */
+
   /* ------------------------------------------------------------------ 원정 손익 계산기 */
   var AIRPORTS = {
     ICN: { label: "인천", from: "인천 출발" },
@@ -1662,7 +2454,7 @@
     CJU: { label: "제주", from: "제주 출발" }
   };
 
-  /* 항공권: 2026-11 조회 기준 최저가대(왕복 직항). 범위는 hint에 함께 표기 */
+  /* 항공권: 2026-11 조회 기준 최저가대(왕복 직항) */
   var ROUTES = {
     ICN: [
       { city: "칭다오", price: 152000, note: "직항 1시간 30분" },
@@ -1689,7 +2481,6 @@
     ]
   };
 
-  /* 2026-01~ 중국 국가의보 협상가(4주분 펜 1개) · 한국은 같은 용량 1개월 평균 */
   var DOSES = {
     "2.5": { cn: 324.12, kr: 320000 },
     "5":   { cn: 551.00, kr: 410000 },
@@ -1697,17 +2488,13 @@
     "10":  { cn: 936.70, kr: 560000 }
   };
 
-  var calc = {
-    pens: 3, air: 207000, exam: 508, drug: 551, fx: 200, kr: 410000,
-    airport: "CJU", routeCity: "상하이", dose: "5"
-  };
+  var calc = { pens: 3, air: 207000, exam: 508, drug: 551, fx: 200, kr: 410000, airport: "CJU", routeCity: "상하이", dose: "5" };
 
   var cAir = document.getElementById("cAir");
   var cExam = document.getElementById("cExam");
   var cDrug = document.getElementById("cDrug");
   var cFx = document.getElementById("cFx");
   var cKr = document.getElementById("cKr");
-
   var routeChipsEl = document.getElementById("routeChips");
   var routeHintEl = document.getElementById("routeHint");
   var routeFromLabel = document.getElementById("routeFromLabel");
@@ -1725,11 +2512,8 @@
   function manWon(p) { return (p / 10000).toFixed(1) + "만"; }
 
   function readCalc() {
-    calc.air = num(cAir, 0);
-    calc.exam = num(cExam, 0);
-    calc.drug = num(cDrug, 0);
-    calc.fx = num(cFx, 200) || 200;
-    calc.kr = num(cKr, 0);
+    calc.air = num(cAir, 0); calc.exam = num(cExam, 0); calc.drug = num(cDrug, 0);
+    calc.fx = num(cFx, 200) || 200; calc.kr = num(cKr, 0);
   }
 
   function updateCalc() {
@@ -1775,10 +2559,7 @@
 
   [cAir, cExam, cDrug, cFx, cKr].forEach(function (el) {
     el.addEventListener("input", updateCalc);
-    el.addEventListener("blur", function () {
-      el.value = fmtNum(num(el, 0));
-      updateCalc();
-    });
+    el.addEventListener("blur", function () { el.value = fmtNum(num(el, 0)); updateCalc(); });
   });
 
   function currentRoutes() { return ROUTES[calc.airport] || []; }
@@ -1787,14 +2568,10 @@
     var list = currentRoutes();
     routeChipsEl.innerHTML = list.map(function (r, i) {
       var label = r.price ? manWon(r.price) : "—";
-      return '<button type="button" class="rt" data-route="' + i + '" aria-pressed="' +
-        (r.city === calc.routeCity ? "true" : "false") + '">' + r.city +
-        ' <span class="p">' + label + "</span></button>";
+      return '<button type="button" class="rt" data-route="' + i + '" aria-pressed="' + (r.city === calc.routeCity ? "true" : "false") + '">' + r.city + ' <span class="p">' + label + "</span></button>";
     }).join("");
     Array.prototype.forEach.call(routeChipsEl.querySelectorAll("[data-route]"), function (b) {
-      b.addEventListener("click", function () {
-        selectRoute(parseInt(b.getAttribute("data-route"), 10));
-      });
+      b.addEventListener("click", function () { selectRoute(parseInt(b.getAttribute("data-route"), 10)); });
     });
   }
 
@@ -1847,44 +2624,32 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-dose]"), function (btn) {
     btn.addEventListener("click", function () { setDose(btn.getAttribute("data-dose")); });
   });
-
-  document.querySelectorAll("[data-pens]").forEach(function (btn) {
+  Array.prototype.forEach.call(document.querySelectorAll("[data-pens]"), function (btn) {
     btn.addEventListener("click", function () {
       calc.pens = parseInt(btn.getAttribute("data-pens"), 10);
-      document.querySelectorAll("[data-pens]").forEach(function (b) {
+      Array.prototype.forEach.call(document.querySelectorAll("[data-pens]"), function (b) {
         b.setAttribute("aria-pressed", b === btn ? "true" : "false");
       });
       updateCalc();
     });
   });
-
-  document.querySelectorAll("[data-exam]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      cExam.value = btn.getAttribute("data-exam");
-      updateCalc();
-    });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-exam]"), function (btn) {
+    btn.addEventListener("click", function () { cExam.value = btn.getAttribute("data-exam"); updateCalc(); });
   });
-  document.querySelectorAll("[data-drug]").forEach(function (btn) {
+  Array.prototype.forEach.call(document.querySelectorAll("[data-drug]"), function (btn) {
     btn.addEventListener("click", function () {
       var v = parseFloat(btn.getAttribute("data-drug"));
       var matched = null;
-      Object.keys(DOSES).forEach(function (k) {
-        if (Math.abs(DOSES[k].cn - v) < 0.01) matched = k;
-      });
-      if (matched) {
-        setDose(matched);
-      } else {
+      Object.keys(DOSES).forEach(function (k) { if (Math.abs(DOSES[k].cn - v) < 0.01) matched = k; });
+      if (matched) { setDose(matched); }
+      else {
         cDrug.value = btn.getAttribute("data-drug");
-        document.querySelectorAll("[data-dose]").forEach(function (b) {
-          b.setAttribute("aria-pressed", "false");
-        });
+        Array.prototype.forEach.call(document.querySelectorAll("[data-dose]"), function (b) { b.setAttribute("aria-pressed", "false"); });
         updateCalc();
       }
     });
   });
 
-  buildRouteChips();
-  routeFromLabel.textContent = AIRPORTS[calc.airport].from + " · 왕복 직항 참고가";
   var calcModal = document.getElementById("calcModal");
   var calcLastFocus = null;
   function openCalc() {
@@ -1901,12 +2666,12 @@
     if (calcLastFocus && calcLastFocus.focus) calcLastFocus.focus();
   }
   document.getElementById("calcBtn").addEventListener("click", openCalc);
+  var footCalc = document.getElementById("footCalc");
+  if (footCalc) footCalc.addEventListener("click", openCalc);
   document.getElementById("calcReset").addEventListener("click", function () {
-    calc.routeCity = "상하이";
-    calc.pens = 3;
-    cExam.value = "508";
-    cFx.value = "200";
-    document.querySelectorAll("[data-pens]").forEach(function (b) {
+    calc.routeCity = "상하이"; calc.pens = 3;
+    cExam.value = "508"; cFx.value = "200";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pens]"), function (b) {
       b.setAttribute("aria-pressed", b.getAttribute("data-pens") === "3" ? "true" : "false");
     });
     setAirport("CJU");
@@ -1916,17 +2681,20 @@
     if (e.target.getAttribute && e.target.getAttribute("data-close-calc")) closeCalc();
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      if (!calcModal.hidden) closeCalc();
-      else if (!modal.hidden) closeGuide();
-    }
+    if (e.key !== "Escape") return;
+    if (!flash.hidden) { closeFlash(); return; }
+    if (!calcModal.hidden) { closeCalc(); return; }
+    if (!modal.hidden) closeGuide();
   });
 
   /* ------------------------------------------------------------------ 시작 */
   buildTabs();
+  renderFilters();
   updateCalc();
+  routeFromLabel.textContent = AIRPORTS[calc.airport].from + " · 왕복 직항 참고가";
   renderCards();
   renderMap();
+  renderChecks();
 })();
 </script>
 </body>
