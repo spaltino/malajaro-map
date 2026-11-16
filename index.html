@@ -372,6 +372,8 @@
     box-shadow:0 2px 6px rgba(25,27,31,.1);white-space:nowrap;
   }
   .cluster-wrap:hover .cluster-bubble{transform:scale(1.06);background:#000;}
+  .cluster.up .cluster-label{order:-1;}
+  .cluster.down .cluster-label{margin-top:2px;}
 
   /* ---------- leaflet popup ---------- */
   .leaflet-popup-content-wrapper{border-radius:12px !important;box-shadow:0 10px 30px rgba(25,27,31,.18) !important;padding:0 !important;}
@@ -1987,9 +1989,10 @@
   };
 
   function clusterIcon(city, n) {
+    var pos = city === "hangzhou" ? " up" : "";
     return L.divIcon({
       className: "cluster-wrap",
-      html: '<div class="cluster"><div class="cluster-bubble">' + n + "<small>곳</small></div>" +
+      html: '<div class="cluster' + pos + '"><div class="cluster-bubble">' + n + "<small>곳</small></div>" +
             '<div class="cluster-label">' + CITY_PINS[city].label + "</div></div>",
       iconSize: [0, 0], iconAnchor: [0, 0]
     });
