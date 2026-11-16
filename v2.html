@@ -339,6 +339,11 @@
     padding:6px 12px;border-radius:999px;box-shadow:0 6px 18px rgba(25,27,31,.22);
     white-space:nowrap;pointer-events:none;backdrop-filter:blur(4px);
   }
+  .map-fallback{
+    position:absolute;inset:0;display:grid;place-content:center;gap:4px;text-align:center;
+    padding:24px;font-size:12.5px;line-height:1.7;color:var(--muted);background:#f1efe9;
+  }
+  .map-fallback b{color:var(--ink-2);font-size:13.5px;}
 
   /* ---------- pins ---------- */
   .pin-wrap{background:none;border:none;}
@@ -513,6 +518,8 @@
   .cmp-table thead th.cn-col{color:#b4472c;}
   .cmp-table thead th.jp-col{color:#1f5fd0;}
   .cmp-table th.row-h{width:118px;font-size:11.5px;font-weight:800;color:var(--ink);background:#fcfbf9;}
+  .cmp-table thead th:first-child{position:sticky;left:0;z-index:3;background:#faf9f6;}
+  .cmp-table tbody th.row-h{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 var(--line);}
   .cmp-table td{color:var(--ink-2);line-height:1.5;}
   .cmp-table tr:last-child td,.cmp-table tr:last-child th{border-bottom:none;}
   .cmp-table .big{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.02em;display:block;}
@@ -522,6 +529,16 @@
   .cmp-table li{font-size:12px;line-height:1.45;}
   .cmp-notes{margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.65;letter-spacing:-.01em;}
   .cmp-notes b{color:var(--ink-2);}
+  .scroll-hint{display:none;font-size:10.5px;font-weight:700;color:var(--muted);margin:0 0 6px;letter-spacing:-.01em;}
+  .scroll-hint span{color:var(--accent);}
+
+  /* pick cards */
+  .pick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:16px;}
+  .pick{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 15px;box-shadow:var(--shadow-sm);}
+  .pick .pk{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);}
+  .pick h3{margin-top:4px;font-size:14.5px;font-weight:800;letter-spacing:-.025em;}
+  .pick p{margin-top:5px;font-size:11.5px;color:var(--ink-2);line-height:1.55;}
+  .pick p b{color:var(--ink);font-weight:800;}
 
   /* routes */
   .route-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);}
@@ -729,6 +746,13 @@
     .sec-head h2{font-size:19px;}
     .sec-head p{font-size:12.5px;}
     .phrase-grid,.shop-grid{grid-template-columns:1fr;}
+    .pick-grid{grid-template-columns:1fr;}
+    .scroll-hint{display:block;}
+    .cmp-table{min-width:600px;font-size:11.5px;}
+    .cmp-table th,.cmp-table td{padding:9px 10px;}
+    .cmp-table th.row-h{width:92px;font-size:11px;}
+    .cmp-table .big{font-size:13px;}
+    .route-table{min-width:640px;font-size:11.5px;}
     .check-grid{grid-template-columns:1fr;}
     .warn-grid{grid-template-columns:1fr;}
     .keyfacts{grid-template-columns:1fr 1fr;}
@@ -760,6 +784,11 @@
 </style>
 </head>
 <body>
+<noscript>
+  <div style="padding:14px 16px;background:#fdece8;border-bottom:1px solid #f3c9bf;font-size:13px;color:#8f2c19;font-weight:700">
+    이 페이지는 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜면 지도·필터·계산기가 모두 동작합니다.
+  </div>
+</noscript>
 
 <header class="app-header">
   <div class="brand">
@@ -879,6 +908,7 @@
     <h2>한국 vs 중국 vs 일본, 1개월 비용은 얼마 차이일까</h2>
     <p>같은 마운자로(터제파티드)라도 나라마다 <b>처방 기준·포장 단위·가격</b>이 다릅니다. 2026년 11월 확인된 공식·공개 자료로 2.5mg부터 10mg까지 나란히 놓았습니다.</p>
   </div>
+  <p class="scroll-hint"><span>←</span> 표를 좌우로 넘기면 나라별 가격이 보입니다</p>
   <div class="cmp-scroll">
     <table class="cmp-table">
       <thead>
@@ -956,6 +986,23 @@
   <p class="cmp-notes">
     <b>환율 가정</b> 1위안 ≈ 200원, 100엔 ≈ 840원 (2026-11-13 연합뉴스 환산 기준). <b>한국</b>은 공급가(4펜)와 실제 판매가 범위, <b>중국</b>은 2026-01~ 국가의보 협상가 1펜 기준, <b>일본</b>은 2026-10-17~25 각 클리닉 공식 페이지 30곳 조사 <b>중앙값</b>입니다. 일본은 2.5mg 4본을 ¥8,000대에 파는 곳도 있어 편차가 큽니다. 모든 가격은 참고값이며, 실제 결제액은 진찰료·검사비·환율에 따라 달라집니다.
   </p>
+  <div class="pick-grid">
+    <div class="pick">
+      <div class="pk">가장 저렴하게</div>
+      <h3>인천 → 칭다오</h3>
+      <p>왕복 <b>15.2만 원</b> + 2.5mg 3펜 <b>19.4만 원</b> + 진찰 100위안 ≒ <b>37만 원</b>. 1시간 30분 직항에 8호선으로 시내까지 40분.</p>
+    </div>
+    <div class="pick">
+      <div class="pk">가장 확인된 곳</div>
+      <h3>제주 → 상하이 런지병원</h3>
+      <p>전화 확인된 유일한 병원. <b>영어 진료·5mg 재고 보유</b>, 진찰 508위안. 춘추항공 당일치기 왕복 20.7만.</p>
+    </div>
+    <div class="pick">
+      <div class="pk">재처방이 편한 쪽</div>
+      <h3>일본 클리닉 (스시자로)</h3>
+      <p>한국의 약 <b>1/2 가격</b>에 12.5·15mg까지. 다만 다이어트 목적은 적응증 밖(자유진료)이라 클리닉 판단이 필요합니다.</p>
+    </div>
+  </div>
 </section>
 
 <!-- ══════════ 공항 → 병원 ══════════ -->
@@ -965,6 +1012,7 @@
     <h2>공항에서 병원까지, 실제 지하철 노선</h2>
     <p>택시만 알면 비싸고, 노선을 알면 <b>2~7위안</b>으로 갑니다. 병원 공식 안내·현지 지도로 확인한 노선만 실었고, 확인되지 않은 구간은 택시 기준으로 남겼습니다.</p>
   </div>
+  <p class="scroll-hint"><span>←</span> 표를 좌우로 넘기면 노선과 근거가 함께 보입니다</p>
   <div class="route-scroll">
     <table class="route-table">
       <thead>
@@ -1330,7 +1378,7 @@
           <li>런지병원 동원 국제의료부는 <b>영어 진료</b> 가능, 이메일 예약 <b>renji_clinic@renji.com</b></li>
           <li>칭다오 시립병원은 <b>본관이 아니라 옆 건물(东院) 2층 국제부</b>로 바로 가세요. 본관 내과는 당일 접수가 마감되는 경우가 많습니다.</li>
           <li>원내 약국 품절이면 <b>도보 7~8분 거리 약국</b>으로 가야 하니 귀국편까지 시간을 넉넉히 두세요.</li>
-          <li>도시별 공항에서 병원까지는 위 <b>공항 → 병원</b> 표의 지하철 노선을 쓰면 2~7위안입니다. 첫차·막차는 高德·百度地圖로 다시 확인하세요.</li>
+          <li>도시별 공항에서 병원까지는 페이지의 <b>공항 → 병원</b> 표에 있는 지하철 노선을 쓰면 2~7위안입니다. 첫차·막차는 高德·百度地圖로 다시 확인하세요.</li>
           <li>수령 즉시 <b>처방전·영수증 인쇄본</b>을 받아 두기 (세관 제시용)</li>
         </ul>
       </div>
@@ -1845,22 +1893,28 @@
   }
 
   /* ------------------------------------------------------------------ 지도 */
-  var map = L.map("map", {
-    zoomControl: true, scrollWheelZoom: true, attributionControl: true,
-    minZoom: 3, maxZoom: 18, worldCopyJump: true
-  }).setView([33.0, 121.0], 5);
-
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-  var markerLayer = L.layerGroup().addTo(map);
-  var markersById = {};
   var mapEl = document.getElementById("map");
-  function syncTileWeight() { mapEl.classList.toggle("low-zoom", map.getZoom() <= 7); }
-  map.on("zoomend", syncTileWeight);
-  syncTileWeight();
+  var map = null;
+  var markerLayer = null;
+  var markersById = {};
+  try {
+    if (window.L && mapEl) {
+      map = L.map("map", {
+        zoomControl: true, scrollWheelZoom: true, attributionControl: true,
+        minZoom: 3, maxZoom: 18, worldCopyJump: true
+      }).setView([33.0, 121.0], 5);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      markerLayer = L.layerGroup().addTo(map);
+      map.on("zoomend", function () { mapEl.classList.toggle("low-zoom", map.getZoom() <= 7); });
+      mapEl.classList.add("low-zoom");
+    }
+  } catch (err) { map = null; markerLayer = null; }
+  if (!map && mapEl) {
+    mapEl.innerHTML = '<div class="map-fallback"><b>지도를 불러오지 못했어요.</b><br />지도 타일 서버에 접속하지 못한 경우에도 카드 목록·필터·계산기는 그대로 동작합니다.</div>';
+  }
 
   function statusClass(h) {
     if (h.kind === "pharmacy") return "is-pharmacy";
@@ -1916,7 +1970,7 @@
   }
 
   function fitTo(list) {
-    if (!list.length) return;
+    if (!map || !list.length) return;
     if (list.length === 1) { map.flyTo(list[0].coord, 15, { duration: 0.6 }); return; }
     var bounds = L.latLngBounds(list.map(function (h) { return h.coord; }));
     map.flyToBounds(bounds, { padding: [70, 70], maxZoom: 13, duration: 0.6 });
@@ -1942,6 +1996,7 @@
   }
 
   function renderClusters() {
+    if (!map) return;
     markerLayer.clearLayers();
     markersById = {};
     var counts = {};
@@ -1965,6 +2020,7 @@
   }
 
   function renderMap() {
+    if (!map) return;
     if (state.city === "all") { renderClusters(); return; }
     markerLayer.clearLayers();
     markersById = {};
@@ -2013,12 +2069,20 @@
     );
   }
 
+  var FILTER_HINTS = {
+    all: "도시 안의 모든 병원·약국",
+    confirmed: "전화로 처방·재고까지 확인이 끝난 곳",
+    korean: "한국어 응대가 확인된 곳(예약 지원·간호사·진료)",
+    daytrip: "제주·인천에서 당일 왕복이 가능한 도시(상하이 3 · 닝보 3 · 칭다오 2)",
+    planb: "병원 1펜 처방 시 추가 구매하는 약국"
+  };
+
   function renderFilters() {
     var wrap = document.getElementById("filters");
     var cityList = HOSPITALS.filter(function (h) { return state.city === "all" || h.city === state.city; });
     wrap.innerHTML = FILTERS.map(function (f) {
       var n = cityList.filter(f.test).length;
-      return '<button type="button" class="fchip" data-filter="' + f.key + '" aria-pressed="' +
+      return '<button type="button" class="fchip" data-filter="' + f.key + '" title="' + (FILTER_HINTS[f.key] || "") + '" aria-pressed="' +
         (f.key === state.filter ? "true" : "false") + '">' + f.label + ' <span class="n">' + n + "</span></button>";
     }).join("");
   }
@@ -2068,7 +2132,7 @@
       }, 800);
     } else {
       var m = markersById[id];
-      if (m) {
+      if (m && map) {
         map.flyTo(h.coord, Math.max(map.getZoom(), 14), { duration: 0.55 });
         window.setTimeout(function () { m.openPopup(); }, 320);
       }
